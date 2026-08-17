@@ -1,0 +1,15 @@
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\bin\Debug\net9.0\Prodify.Application.deps.json
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\bin\Debug\net9.0\Prodify.Application.dll
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\bin\Debug\net9.0\Prodify.Application.pdb
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\bin\Debug\net9.0\Prodify.Domain.dll
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\bin\Debug\net9.0\Prodify.Domain.pdb
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify.Application.csproj.AssemblyReference.cache
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify.Application.AssemblyInfoInputs.cache
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify.Application.AssemblyInfo.cs
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify.Application.csproj.CoreCompileInputs.cache
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify..B580AA57.Up2Date
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify.Application.dll
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\refint\Prodify.Application.dll
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\Prodify.Application.pdb
+C:\Users\aolan\source\repos\Prodify\prodify-api\src\Prodify.Application\obj\Debug\net9.0\ref\Prodify.Application.dll

@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<ProjectReference Include="..\Prodify.Domain\Prodify.Domain.csproj" />
+	</ItemGroup>
+	<PropertyGroup>
+	</PropertyGroup>
+</Project>

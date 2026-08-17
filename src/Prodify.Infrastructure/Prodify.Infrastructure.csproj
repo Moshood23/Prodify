@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<ProjectReference Include="..\Prodify.Application\Prodify.Application.csproj" />
+		<ProjectReference Include="..\Prodify.Domain\Prodify.Domain.csproj" />
+		<ProjectReference Include="..\Prodify.Contracts\Prodify.Contracts.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup>
+	</PropertyGroup>
+
+</Project>

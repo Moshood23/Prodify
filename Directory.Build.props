@@ -1,0 +1,15 @@
+﻿<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.4.1" Condition="'$(MSBuildProjectName)' == 'Prodify.Application'" />
+    <PackageReference Include="FluentValidation" Version="11.11.0" Condition="'$(MSBuildProjectName)' == 'Prodify.Application'" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" Condition="'$(MSBuildProjectName)' == 'Prodify.Application'" />
+  </ItemGroup>
+</Project>

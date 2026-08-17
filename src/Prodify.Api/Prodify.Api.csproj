@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Prodify.Application\Prodify.Application.csproj" />
+		<ProjectReference Include="..\Prodify.Infrastructure\Prodify.Infrastructure.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+	</ItemGroup>
+</Project>
