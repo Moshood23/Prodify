@@ -1,0 +1,15 @@
+﻿services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: prodify-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Prodify_Dev_2026!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - prodify-sqlserver-data:/var/opt/mssql
+
+volumes:
+  prodify-sqlserver-data:
