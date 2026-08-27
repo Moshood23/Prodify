@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Prodify.Domain.Cart.Entities;
 using Prodify.Domain.Catalog.Entities;
 using Prodify.Domain.Customers.Entities;
@@ -7,11 +9,12 @@ using Prodify.Domain.Notifications.Entities;
 using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Payments.Entities;
 using Prodify.Domain.Sellers.Entities;
+using Prodify.Infrastructure.Identity;
 using Prodify.Infrastructure.Messaging.Outbox;
 
 namespace Prodify.Infrastructure.Persistence;
 
-public class ProdifyDbContext : DbContext
+public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public ProdifyDbContext(DbContextOptions<ProdifyDbContext> options) : base(options)
     {
@@ -44,11 +47,13 @@ public class ProdifyDbContext : DbContext
 
     // Notifications
     public DbSet<Notification> Notifications => Set<Notification>();
+
+    // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProdifyDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProdifyDbContext).Assembly);
     }
 }
