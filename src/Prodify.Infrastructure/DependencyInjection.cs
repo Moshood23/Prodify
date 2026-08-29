@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Text;
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,8 +16,6 @@ using Prodify.Infrastructure.Notifications;
 using Prodify.Infrastructure.Payments;
 using Prodify.Infrastructure.Persistence;
 using Prodify.Infrastructure.Persistence.Interceptors;
-using System.Text;
-using MediatR;
 
 namespace Prodify.Infrastructure;
 
@@ -76,8 +77,15 @@ public static class DependencyInjection
         services.AddHostedService<PaymentRetryService>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly));
-        services.AddSingleton<DomainEventInterceptor>();
 
+        services.AddValidatorsFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly);
+
+        services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Prodify.Application.Common.Behaviors.LoggingBehavior<,>));
+        services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Prodify.Application.Common.Behaviors.ValidationBehavior<,>));
+        services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Prodify.Application.Common.Behaviors.TransactionBehavior<,>));
+
+        services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ProdifyDbContext>());
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
 }
