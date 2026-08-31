@@ -19,8 +19,7 @@ public interface IApplicationDbContext
     IQueryable<Warehouse> Warehouses { get; }
     IQueryable<InventoryItem> InventoryItems { get; }
 
-    IQueryable<Cart> Carts { get; }
-
+    IQueryable<Domain.Cart.Entities.Cart> Carts { get; }
     IQueryable<Order> Orders { get; }
 
     IQueryable<Payment> Payments { get; }
