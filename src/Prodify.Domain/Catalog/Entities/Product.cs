@@ -12,7 +12,8 @@ public class Product : AuditableEntity
     public string? Description { get; private set; }
     public Guid CategoryId { get; private set; }
     public Guid? BrandId { get; private set; }
-    public bool? IsActive { get; private set; }
+    public Guid SellerId { get; private set; }
+    public bool IsActive { get; private set; }
 
     public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
     public IReadOnlyCollection<ProductAttribute> Attributes => _attributes.AsReadOnly();
@@ -21,21 +22,25 @@ public class Product : AuditableEntity
     {
     }
 
-    private Product(Guid id, string name, string? description, Guid categoryId, Guid? brandId) : base(id)
+    private Product(Guid id, string name, string? description, Guid categoryId, Guid? brandId, Guid sellerId) : base(id)
     {
         Name = name;
         Description = description;
         CategoryId = categoryId;
         BrandId = brandId;
+        SellerId = sellerId;
         IsActive = true;
     }
 
-    public static Product Create(string name, string? description, Guid categoryId, Guid? brandId = null)
+    public static Product Create(string name, string? description, Guid categoryId, Guid sellerId, Guid? brandId = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Product name cannot be empty.", nameof(name));
 
-        var product = new Product(Guid.NewGuid(), name.Trim(), description, categoryId, brandId);
+        if (sellerId == Guid.Empty)
+            throw new ArgumentException("Product must belong to a valid seller.", nameof(sellerId));
+
+        var product = new Product(Guid.NewGuid(), name.Trim(), description, categoryId, brandId, sellerId);
         product.AddDomainEvent(new ProductCreatedEvent(product.Id, product.Name));
 
         return product;
