@@ -16,10 +16,11 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var product = Product.Create(
-            request.Name,
-            request.Description,
-            request.CategoryId,
-            request.BrandId);
+             request.Name,
+             request.Description,
+             request.CategoryId,
+             request.SellerId,
+             request.BrandId);
 
         _context.Add(product);
 

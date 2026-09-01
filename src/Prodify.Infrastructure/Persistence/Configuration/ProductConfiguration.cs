@@ -21,6 +21,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(p => p.CategoryId)
             .IsRequired();
+        builder.Property(p => p.SellerId)
+            .IsRequired();
 
         builder.Property(p => p.IsActive)
             .IsRequired();
@@ -52,5 +54,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.HasIndex(p => p.CategoryId);
         builder.HasIndex(p => p.BrandId);
+        builder.HasIndex(p => p.SellerId);
     }
 }

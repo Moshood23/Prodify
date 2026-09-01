@@ -15,5 +15,7 @@ public class CreateProductCommandValidator : AbstractValidator<CreateProductComm
 
         RuleFor(x => x.CategoryId)
             .NotEmpty();
+        RuleFor(x => x.SellerId)
+            .NotEmpty();
     }
 }
