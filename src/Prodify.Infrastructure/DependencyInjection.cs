@@ -71,6 +71,7 @@ public static class DependencyInjection
 
         services.AddScoped<IPaymentService, SimulatedPaymentGateway>();
         services.AddScoped<INotificationService, LogNotificationService>();
+        services.AddScoped<IIdentityService, IdentityService>();
 
         services.AddHostedService<OutboxProcessorHostedService>();
         services.AddHostedService<ReservationExpirationService>();
