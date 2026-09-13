@@ -4,6 +4,7 @@ using Prodify.Application.Catalog.Products.Commands.CreateProduct;
 using Prodify.Application.Catalog.Products.Commands.UpdateProduct;
 using Prodify.Application.Catalog.Products.Queries.GetProduct;
 using Prodify.Application.Catalog.Products.Queries.ListProducts;
+using Prodify.Application.Catalog.Products.Commands.CreateProductVariant;
 
 namespace Prodify.Api.Controllers;
 
@@ -45,5 +46,13 @@ public class ProductsController : ControllerBase
         command.Id = id;
         await _mediator.Send(command, cancellationToken);
         return NoContent();
+    }
+
+    [HttpPost("{productId:guid}/variants")]
+    public async Task<IActionResult> CreateVariant(Guid productId, CreateProductVariantCommand command, CancellationToken cancellationToken)
+    {
+        command.ProductId = productId;
+        var id = await _mediator.Send(command, cancellationToken);
+        return Ok(id);
     }
 }
