@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Notifications.Commands.MarkAsRead;
 using Prodify.Application.Notifications.Queries.GetNotifications;
-using Microsoft.AspNetCore.Authorization;
-
 namespace Prodify.Api.Controllers;
 
 [ApiController]
