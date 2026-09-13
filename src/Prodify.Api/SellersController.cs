@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Sellers.Commands.ApproveSeller;
 using Prodify.Application.Sellers.Commands.RegisterSeller;
@@ -32,6 +33,7 @@ public class SellersController : ControllerBase
     }
 
     [HttpPost("{id:guid}/approve")]
+    [Authorize]
     public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken)
     {
         await _mediator.Send(new ApproveSellerCommand { SellerId = id }, cancellationToken);

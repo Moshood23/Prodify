@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Customers.Commands.AddCustomerAddress;
 using Prodify.Application.Customers.Commands.RegisterCustomer;
@@ -8,6 +9,7 @@ namespace Prodify.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CustomersController : ControllerBase
 {
     private readonly IMediator _mediator;
