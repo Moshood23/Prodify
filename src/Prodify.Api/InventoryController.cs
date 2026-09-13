@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Inventory.Commands.CreateWarehouse;
 using Prodify.Application.Inventory.Commands.ReserveStock;
 using Prodify.Application.Inventory.Queries.GetInventory;
+using Prodify.Application.Inventory.Commands.CreateInventoryItem;
 
 namespace Prodify.Api.Controllers;
 
@@ -36,5 +37,12 @@ public class InventoryController : ControllerBase
     {
         var reservationId = await _mediator.Send(command, cancellationToken);
         return Ok(reservationId);
+    }
+
+    [HttpPost("items")]
+    public async Task<IActionResult> CreateItem(CreateInventoryItemCommand command, CancellationToken cancellationToken)
+    {
+        var id = await _mediator.Send(command, cancellationToken);
+        return Ok(id);
     }
 }
