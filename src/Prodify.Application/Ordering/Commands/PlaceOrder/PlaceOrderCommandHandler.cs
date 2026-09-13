@@ -19,7 +19,8 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
     public async Task<Guid> Handle(PlaceOrderCommand request, CancellationToken cancellationToken)
     {
         var cart = await _context.Carts
-            .FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId, cancellationToken);
+     .Include(c => c.Items)
+     .FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId, cancellationToken);
 
         if (cart is null || !cart.Items.Any())
             throw new BusinessRuleException("Cart is empty or does not exist.");
