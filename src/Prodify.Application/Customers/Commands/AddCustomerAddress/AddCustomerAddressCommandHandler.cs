@@ -17,7 +17,8 @@ public class AddCustomerAddressCommandHandler : IRequestHandler<AddCustomerAddre
     public async Task<Guid> Handle(AddCustomerAddressCommand request, CancellationToken cancellationToken)
     {
         var customer = await _context.Customers
-            .FirstOrDefaultAsync(c => c.Id == request.CustomerId, cancellationToken);
+     .Include(c => c.Addresses)
+     .FirstOrDefaultAsync(c => c.Id == request.CustomerId, cancellationToken);
 
         if (customer is null)
             throw new NotFoundException("Customer", request.CustomerId);

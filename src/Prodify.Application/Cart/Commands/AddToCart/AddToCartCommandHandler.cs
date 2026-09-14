@@ -23,9 +23,8 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, Guid>
             throw new NotFoundException("ProductVariant", request.ProductVariantId);
 
         var cart = request.CustomerId.HasValue
-            ? await _context.Carts.FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId, cancellationToken)
-            : await _context.Carts.FirstOrDefaultAsync(c => c.SessionId == request.SessionId, cancellationToken);
-
+    ? await _context.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId, cancellationToken)
+    : await _context.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.SessionId == request.SessionId, cancellationToken);
         if (cart is null)
         {
             cart = request.CustomerId.HasValue
