@@ -17,9 +17,10 @@ public class ReserveStockCommandHandler : IRequestHandler<ReserveStockCommand, G
     public async Task<Guid> Handle(ReserveStockCommand request, CancellationToken cancellationToken)
     {
         var inventoryItem = await _context.InventoryItems
-            .FirstOrDefaultAsync(
-                i => i.ProductVariantId == request.ProductVariantId && i.WarehouseId == request.WarehouseId,
-                cancellationToken);
+    .Include(i => i.Reservations)
+    .FirstOrDefaultAsync(
+        i => i.ProductVariantId == request.ProductVariantId && i.WarehouseId == request.WarehouseId,
+        cancellationToken);
 
         if (inventoryItem is null)
             throw new NotFoundException("InventoryItem", $"{request.ProductVariantId}/{request.WarehouseId}");

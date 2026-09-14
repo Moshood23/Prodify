@@ -56,9 +56,9 @@ public class ExceptionHandlingMiddleware
                 null),
 
             _ => (
-                HttpStatusCode.InternalServerError,
-                "An unexpected error occurred.",
-                null)
+     HttpStatusCode.InternalServerError,
+     "An unexpected error occurred.",
+     (object?)new { detail = exception.ToString() })
         };
 
         if (statusCode == HttpStatusCode.InternalServerError)
