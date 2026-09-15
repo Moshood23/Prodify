@@ -12,6 +12,8 @@ public class SellerOrderConfiguration : IEntityTypeConfiguration<SellerOrder>
 
         builder.HasKey(so => so.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(so => so.OrderId)
             .IsRequired();
 

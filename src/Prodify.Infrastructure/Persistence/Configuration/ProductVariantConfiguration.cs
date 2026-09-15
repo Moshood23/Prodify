@@ -13,6 +13,8 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
 
         builder.HasKey(v => v.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(v => v.ProductId)
             .IsRequired();
 

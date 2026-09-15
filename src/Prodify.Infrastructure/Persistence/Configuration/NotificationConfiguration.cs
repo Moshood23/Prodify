@@ -12,6 +12,8 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 
         builder.HasKey(n => n.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(n => n.RecipientId)
             .IsRequired();
 

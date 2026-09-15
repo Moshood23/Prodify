@@ -12,6 +12,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.HasKey(o => o.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.OwnsOne(o => o.OrderNumber, num =>
         {
             num.Property(n => n.Value)

@@ -12,6 +12,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.HasKey(i => i.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(i => i.OrderId)
             .IsRequired();
 

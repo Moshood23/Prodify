@@ -12,6 +12,8 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 
         builder.HasKey(p => p.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(p => p.OrderId)
             .IsRequired();
 

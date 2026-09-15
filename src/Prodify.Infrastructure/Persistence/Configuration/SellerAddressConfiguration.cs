@@ -12,6 +12,8 @@ public class SellerAddressConfiguration : IEntityTypeConfiguration<SellerAddress
 
         builder.HasKey(a => a.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(a => a.SellerId)
             .IsRequired();
 

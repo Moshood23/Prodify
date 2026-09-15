@@ -12,6 +12,8 @@ public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement
 
         builder.HasKey(m => m.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(m => m.InventoryItemId)
             .IsRequired();
 

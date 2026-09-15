@@ -17,21 +17,22 @@ public class GetInventoryQueryHandler : IRequestHandler<GetInventoryQuery, Inven
     public async Task<InventoryDto> Handle(GetInventoryQuery request, CancellationToken cancellationToken)
     {
         var item = await _context.InventoryItems
-            .Where(i => i.ProductVariantId == request.ProductVariantId && i.WarehouseId == request.WarehouseId)
-            .Select(i => new InventoryDto
-            {
-                Id = i.Id,
-                ProductVariantId = i.ProductVariantId,
-                WarehouseId = i.WarehouseId,
-                QuantityOnHand = i.QuantityOnHand,
-                QuantityReserved = i.QuantityReserved,
-                AvailableQuantity = i.AvailableQuantity
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+            .Include(i => i.Reservations)
+            .FirstOrDefaultAsync(
+                i => i.ProductVariantId == request.ProductVariantId && i.WarehouseId == request.WarehouseId,
+                cancellationToken);
 
         if (item is null)
             throw new NotFoundException("InventoryItem", $"{request.ProductVariantId}/{request.WarehouseId}");
 
-        return item;
+        return new InventoryDto
+        {
+            Id = item.Id,
+            ProductVariantId = item.ProductVariantId,
+            WarehouseId = item.WarehouseId,
+            QuantityOnHand = item.QuantityOnHand,
+            QuantityReserved = item.QuantityReserved,
+            AvailableQuantity = item.AvailableQuantity
+        };
     }
 }
