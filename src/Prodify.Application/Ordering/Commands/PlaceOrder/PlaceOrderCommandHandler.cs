@@ -63,7 +63,6 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
 
         cart.Clear();
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return order.Id;
     }

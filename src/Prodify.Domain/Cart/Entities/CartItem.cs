@@ -9,11 +9,10 @@ public class CartItem : Entity
     public int Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }
 
-    private CartItem()
-    {
-    }
+    private CartItem() { }
 
-    internal CartItem(Guid id, Guid cartId, Guid productVariantId, int quantity, decimal unitPrice) : base(id)
+    internal CartItem(Guid id, Guid cartId, Guid productVariantId, int quantity, decimal unitPrice)
+        : base(id)
     {
         CartId = cartId;
         ProductVariantId = productVariantId;

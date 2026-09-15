@@ -45,7 +45,6 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
             payment.FailAttempt(attempt.Id, result.FailureReason);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return payment.Id;
     }

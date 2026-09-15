@@ -25,6 +25,5 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand>
 
         order.Cancel(request.Reason);
 
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

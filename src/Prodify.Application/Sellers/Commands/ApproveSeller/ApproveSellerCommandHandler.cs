@@ -24,6 +24,5 @@ public class ApproveSellerCommandHandler : IRequestHandler<ApproveSellerCommand>
 
         seller.Approve();
 
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

@@ -15,8 +15,8 @@ public class Product : AuditableEntity
     public Guid SellerId { get; private set; }
     public bool IsActive { get; private set; }
 
-    public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
-    public IReadOnlyCollection<ProductAttribute> Attributes => _attributes.AsReadOnly();
+    public ICollection<ProductImage> Images => _images;
+    public ICollection<ProductAttribute> Attributes => _attributes;
 
     private Product()
     {

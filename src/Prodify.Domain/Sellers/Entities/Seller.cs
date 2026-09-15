@@ -19,8 +19,7 @@ public class Seller : AuditableEntity
     public string? PhoneNumber { get; private set; }
     public SellerStatus Status { get; private set; }
 
-    public IReadOnlyCollection<SellerAddress> Addresses => _addresses.AsReadOnly();
-
+    public ICollection<SellerAddress> Addresses => _addresses;
     private Seller()
     {
     }

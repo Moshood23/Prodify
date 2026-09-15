@@ -19,7 +19,6 @@ public class CreateWarehouseCommandHandler : IRequestHandler<CreateWarehouseComm
 
         _context.Add(warehouse);
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return warehouse.Id;
     }

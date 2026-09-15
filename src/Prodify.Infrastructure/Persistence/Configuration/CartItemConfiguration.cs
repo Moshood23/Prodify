@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection.Emit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Prodify.Domain.Cart.Entities;
 
@@ -24,6 +25,8 @@ public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
         builder.Property(i => i.UnitPrice)
             .IsRequired()
             .HasColumnType("decimal(18,2)");
+
+        builder.Property(i => i.Id).ValueGeneratedNever();
 
         builder.Ignore(i => i.Subtotal);
 

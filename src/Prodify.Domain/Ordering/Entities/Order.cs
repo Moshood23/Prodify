@@ -25,9 +25,8 @@ public class Order : AuditableEntity
     public OrderAddress ShippingAddress { get; private set; } = null!;
     public bool IsPaid { get; private set; }
 
-    public IReadOnlyCollection<SellerOrder> SellerOrders => _sellerOrders.AsReadOnly();
-    public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
-
+    public ICollection<SellerOrder> SellerOrders => _sellerOrders;
+    public ICollection<OrderItem> Items => _items;
     public Money Total => _items
         .Select(i => i.Subtotal)
         .Aggregate(Money.Zero(), (acc, next) => acc.Add(next));

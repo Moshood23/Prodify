@@ -27,7 +27,6 @@ public class ReserveStockCommandHandler : IRequestHandler<ReserveStockCommand, G
 
         var reservation = inventoryItem.Reserve(request.Quantity, TimeSpan.FromMinutes(request.ExpiryMinutes));
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return reservation.Id;
     }

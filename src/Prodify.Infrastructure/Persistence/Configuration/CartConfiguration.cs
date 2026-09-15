@@ -34,6 +34,8 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
             .UsePropertyAccessMode(PropertyAccessMode.Field)
             .HasField("_items");
 
+        builder.Property(c => c.Id).ValueGeneratedNever();
+
         builder.HasIndex(c => c.CustomerId);
         builder.HasIndex(c => c.SessionId);
     }

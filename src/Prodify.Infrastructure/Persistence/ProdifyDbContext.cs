@@ -33,6 +33,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
 
     // Cart
     public DbSet<Domain.Cart.Entities.Cart> Carts => Set<Domain.Cart.Entities.Cart>();
+    public DbSet<Domain.Cart.Entities.CartItem> CartItems => Set<Domain.Cart.Entities.CartItem>();
 
     // Ordering
     public DbSet<Order> Orders => Set<Order>();
@@ -60,6 +61,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Warehouse> IApplicationDbContext.Warehouses => Warehouses;
     IQueryable<InventoryItem> IApplicationDbContext.InventoryItems => InventoryItems;
     IQueryable<Domain.Cart.Entities.Cart> IApplicationDbContext.Carts => Carts;
+    IQueryable<Domain.Cart.Entities.CartItem> IApplicationDbContext.CartItems => CartItems;
     IQueryable<Order> IApplicationDbContext.Orders => Orders;
     IQueryable<Payment> IApplicationDbContext.Payments => Payments;
     IQueryable<Customer> IApplicationDbContext.Customers => Customers;
