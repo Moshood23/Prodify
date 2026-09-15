@@ -19,7 +19,6 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Gui
 
         _context.Add(brand);
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return brand.Id;
     }

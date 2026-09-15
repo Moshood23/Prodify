@@ -27,7 +27,6 @@ public class RegisterSellerCommandHandler : IRequestHandler<RegisterSellerComman
 
         _context.Add(seller);
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return seller.Id;
     }

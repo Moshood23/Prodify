@@ -13,19 +13,17 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var product = Product.Create(
-             request.Name,
-             request.Description,
-             request.CategoryId,
-             request.SellerId,
-             request.BrandId);
+            request.Name,
+            request.Description,
+            request.CategoryId,
+            request.SellerId,
+            request.BrandId);
 
         _context.Add(product);
 
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return product.Id;
+        return Task.FromResult(product.Id);
     }
 }

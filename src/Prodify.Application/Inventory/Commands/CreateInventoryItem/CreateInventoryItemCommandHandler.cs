@@ -27,7 +27,6 @@ public class CreateInventoryItemCommandHandler : IRequestHandler<CreateInventory
 
         _context.Add(item);
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return item.Id;
     }

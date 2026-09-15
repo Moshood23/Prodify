@@ -41,6 +41,5 @@ public class RetryPaymentCommandHandler : IRequestHandler<RetryPaymentCommand>
             payment.FailAttempt(attempt.Id, result.FailureReason);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

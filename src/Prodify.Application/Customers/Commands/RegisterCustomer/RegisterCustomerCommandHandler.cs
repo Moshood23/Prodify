@@ -27,7 +27,6 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
 
         _context.Add(customer);
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return customer.Id;
     }

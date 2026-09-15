@@ -20,8 +20,7 @@ public class Payment : AuditableEntity
     public Money Amount { get; private set; } = null!;
     public PaymentStatus Status { get; private set; }
 
-    public IReadOnlyCollection<PaymentAttempt> Attempts => _attempts.AsReadOnly();
-
+    public ICollection<PaymentAttempt> Attempts => _attempts;
     private Payment()
     {
     }

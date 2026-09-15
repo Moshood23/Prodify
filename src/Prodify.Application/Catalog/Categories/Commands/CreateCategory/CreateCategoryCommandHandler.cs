@@ -19,7 +19,6 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
 
         _context.Add(category);
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return category.Id;
     }

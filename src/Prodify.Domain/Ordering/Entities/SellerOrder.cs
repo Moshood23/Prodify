@@ -12,8 +12,8 @@ public class SellerOrder : AuditableEntity
     public Guid SellerId { get; private set; }
     public SellerOrderStatus Status { get; private set; }
 
-    public IReadOnlyCollection<SellerOrderItem> Items => _items.AsReadOnly();
-    public IReadOnlyCollection<OrderStatusHistory> StatusHistory => _statusHistory.AsReadOnly();
+    public ICollection<SellerOrderItem> Items => _items;
+    public ICollection<OrderStatusHistory> StatusHistory => _statusHistory;
 
     public Money Total => _items
         .Select(i => i.Subtotal)

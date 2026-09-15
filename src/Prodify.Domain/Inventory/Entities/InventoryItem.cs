@@ -12,8 +12,8 @@ public class InventoryItem : AuditableEntity
     public Guid WarehouseId { get; private set; }
     public int QuantityOnHand { get; private set; }
 
-    public IReadOnlyCollection<StockReservation> Reservations => _reservations.AsReadOnly();
-    public IReadOnlyCollection<StockMovement> Movements => _movements.AsReadOnly();
+    public ICollection<StockReservation> Reservations => _reservations;
+    public ICollection<StockMovement> Movements => _movements;
 
     public int QuantityReserved => _reservations
         .Where(r => r.Status == ReservationStatus.Active)

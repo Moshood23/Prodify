@@ -25,6 +25,5 @@ public class RemoveCartItemCommandHandler : IRequestHandler<RemoveCartItemComman
 
         cart.RemoveItem(request.CartItemId);
 
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

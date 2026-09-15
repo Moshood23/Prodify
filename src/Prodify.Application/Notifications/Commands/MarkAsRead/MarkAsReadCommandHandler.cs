@@ -24,6 +24,5 @@ public class MarkAsReadCommandHandler : IRequestHandler<MarkAsReadCommand>
 
         notification.MarkAsRead();
 
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

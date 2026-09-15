@@ -9,20 +9,15 @@ public class Cart : AuditableEntity
     public Guid? CustomerId { get; private set; }
     public string? SessionId { get; private set; }
 
-    public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
-
+    public ICollection<CartItem> Items => _items;
     public decimal Total => _items.Sum(i => i.Subtotal);
-
-    private Cart()
-    {
-    }
+    private Cart() { }
 
     private Cart(Guid id, Guid? customerId, string? sessionId) : base(id)
     {
         CustomerId = customerId;
         SessionId = sessionId;
     }
-
     public static Cart CreateForCustomer(Guid customerId)
     {
         return new Cart(Guid.NewGuid(), customerId, null);

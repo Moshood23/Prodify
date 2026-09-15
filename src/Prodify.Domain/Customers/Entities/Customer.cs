@@ -12,8 +12,7 @@ public class Customer : AuditableEntity
     public string? PhoneNumber { get; private set; }
     public bool IsActive { get; private set; }
 
-    public IReadOnlyCollection<CustomerAddress> Addresses => _addresses.AsReadOnly();
-
+    public ICollection<CustomerAddress> Addresses => _addresses;
     public string FullName => $"{FirstName} {LastName}";
 
     private Customer()

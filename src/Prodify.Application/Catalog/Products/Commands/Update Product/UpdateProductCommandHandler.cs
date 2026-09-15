@@ -25,6 +25,5 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand>
 
         product.Update(request.Name, request.Description, request.CategoryId, request.BrandId);
 
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

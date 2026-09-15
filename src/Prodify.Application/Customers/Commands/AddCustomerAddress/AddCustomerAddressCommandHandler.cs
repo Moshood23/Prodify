@@ -35,7 +35,6 @@ public class AddCustomerAddressCommandHandler : IRequestHandler<AddCustomerAddre
             request.PostalCode,
             request.SetAsDefault);
 
-        await _context.SaveChangesAsync(cancellationToken);
 
         return address.Id;
     }
