@@ -12,6 +12,8 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 
         builder.HasKey(c => c.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(c => c.FirstName)
             .IsRequired()
             .HasMaxLength(100);

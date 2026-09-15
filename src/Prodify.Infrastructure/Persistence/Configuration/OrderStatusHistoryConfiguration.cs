@@ -12,6 +12,8 @@ public class OrderStatusHistoryConfiguration : IEntityTypeConfiguration<OrderSta
 
         builder.HasKey(h => h.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(h => h.SellerOrderId)
             .IsRequired();
 

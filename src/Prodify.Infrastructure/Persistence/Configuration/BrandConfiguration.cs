@@ -12,6 +12,8 @@ public class BrandConfiguration : IEntityTypeConfiguration<Brand>
 
         builder.HasKey(b => b.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(b => b.Name)
             .IsRequired()
             .HasMaxLength(200);

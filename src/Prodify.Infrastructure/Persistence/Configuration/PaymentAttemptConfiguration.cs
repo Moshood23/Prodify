@@ -12,6 +12,8 @@ public class PaymentAttemptConfiguration : IEntityTypeConfiguration<PaymentAttem
 
         builder.HasKey(a => a.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(a => a.PaymentId)
             .IsRequired();
 

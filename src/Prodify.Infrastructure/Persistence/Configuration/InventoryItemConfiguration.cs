@@ -12,6 +12,8 @@ public class InventoryItemConfiguration : IEntityTypeConfiguration<InventoryItem
 
         builder.HasKey(i => i.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(i => i.ProductVariantId)
             .IsRequired();
 

@@ -12,6 +12,8 @@ public class SellerConfiguration : IEntityTypeConfiguration<Seller>
 
         builder.HasKey(s => s.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(s => s.BusinessName)
             .IsRequired()
             .HasMaxLength(200);

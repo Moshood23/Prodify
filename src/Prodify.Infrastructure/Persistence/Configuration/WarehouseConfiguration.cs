@@ -12,6 +12,8 @@ public class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
 
         builder.HasKey(w => w.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(w => w.Name)
             .IsRequired()
             .HasMaxLength(200);
