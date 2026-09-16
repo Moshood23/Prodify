@@ -24,11 +24,14 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<DomainEventInterceptor>();
+        services.AddScoped<AuditableEntityInterceptor>();
 
         services.AddDbContext<ProdifyDbContext>((sp, options) =>
         {
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-            options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
+            options.AddInterceptors(
+                sp.GetRequiredService<DomainEventInterceptor>(),
+                sp.GetRequiredService<AuditableEntityInterceptor>());
         });
 
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
