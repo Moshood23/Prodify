@@ -10,8 +10,10 @@ using Prodify.Domain.Notifications.Entities;
 using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Payments.Entities;
 using Prodify.Domain.Sellers.Entities;
+using Prodify.Domain.Shipping.Entities;
 using Prodify.Infrastructure.Identity;
 using Prodify.Infrastructure.Messaging.Outbox;
+
 
 namespace Prodify.Infrastructure.Persistence;
 
@@ -49,6 +51,9 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
 
     // Notifications
     public DbSet<Notification> Notifications => Set<Notification>();
+
+    // Shipping
+    public DbSet<Shipment> Shipments => Set<Shipment>();
 
     // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
