@@ -29,6 +29,10 @@ public interface IApplicationDbContext
 
     IQueryable<Seller> Sellers { get; }
 
+    IQueryable<SellerOrder> SellerOrders { get; }
+
+    IQueryable<Domain.Shipping.Entities.Shipment> Shipments { get; }
+
     IQueryable<Notification> Notifications { get; }
 
     void Add<TEntity>(TEntity entity) where TEntity : class;

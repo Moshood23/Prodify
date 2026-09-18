@@ -45,6 +45,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseMiddleware<Prodify.Api.Middleware.CorrelationIdMiddleware>();
 app.UseMiddleware<Prodify.Api.Middleware.ExceptionHandlingMiddleware>();
 
 app.UseCors("AllowFrontend");
