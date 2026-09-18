@@ -32,6 +32,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHealthChecks()
+    .AddCheck<Prodify.Api.HealthChecks.DatabaseHealthCheck>("database");
 
 builder.Services.AddCors(options =>
 {
@@ -63,5 +65,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
