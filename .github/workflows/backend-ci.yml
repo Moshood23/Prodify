@@ -1,0 +1,37 @@
+﻿name: Backend CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore Prodify.sln
+
+      - name: Build
+        run: dotnet build Prodify.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Prodify.sln --configuration Release --no-build --verbosity normal
+
+      - name: Check for missing EF Core migrations
+        run: |
+          dotnet tool install --global dotnet-ef --version 8.0.10
+          dotnet ef migrations has-pending-model-changes \
+            --project src/Prodify.Infrastructure \
+            --startup-project src/Prodify.Infrastructure \
+            --configuration Release --no-build
