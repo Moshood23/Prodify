@@ -1,4 +1,7 @@
-﻿using Prodify.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore;
+using Prodify.Infrastructure.Persistence;
+using Prodify.Infrastructure;
+using Prodify.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +50,18 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    if (app.Environment.IsDevelopment())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ProdifyDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
+
+    var identitySeeder = scope.ServiceProvider.GetRequiredService<IdentitySeeder>();
+    await identitySeeder.SeedAsync();
+}
 app.UseMiddleware<Prodify.Api.Middleware.CorrelationIdMiddleware>();
 app.UseMiddleware<Prodify.Api.Middleware.ExceptionHandlingMiddleware>();
 

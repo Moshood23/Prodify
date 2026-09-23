@@ -15,7 +15,7 @@ public class JwtService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public string GenerateToken(ApplicationUser user)
+    public string GenerateToken(ApplicationUser user, IEnumerable<string> roles)
     {
         var claims = new List<Claim>
         {
@@ -29,6 +29,9 @@ public class JwtService
 
         if (user.SellerId.HasValue)
             claims.Add(new Claim("sellerId", user.SellerId.Value.ToString()));
+
+        foreach (var role in roles)
+            claims.Add(new Claim(ClaimTypes.Role, role));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
