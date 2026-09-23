@@ -15,7 +15,7 @@ public class IdentityService : IIdentityService
     }
 
     public async Task<Application.Common.Interfaces.IdentityResult> RegisterAsync(
-        string email, string password, Guid? customerId, Guid? sellerId, CancellationToken cancellationToken = default)
+        string email, string password, Guid? customerId, Guid? sellerId, string role, CancellationToken cancellationToken = default)
     {
         var user = new ApplicationUser
         {
@@ -33,7 +33,16 @@ public class IdentityService : IIdentityService
                 false, null, null, result.Errors.Select(e => e.Description));
         }
 
-        var token = _jwtService.GenerateToken(user);
+        var roleResult = await _userManager.AddToRoleAsync(user, role);
+
+        if (!roleResult.Succeeded)
+        {
+            return new Application.Common.Interfaces.IdentityResult(
+                false, null, null, roleResult.Errors.Select(e => e.Description));
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = _jwtService.GenerateToken(user, roles);
 
         return new Application.Common.Interfaces.IdentityResult(true, user.Id, token, Enumerable.Empty<string>());
     }
@@ -49,7 +58,8 @@ public class IdentityService : IIdentityService
                 false, null, null, new[] { "Invalid email or password." });
         }
 
-        var token = _jwtService.GenerateToken(user);
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = _jwtService.GenerateToken(user, roles);
 
         return new Application.Common.Interfaces.IdentityResult(true, user.Id, token, Enumerable.Empty<string>());
     }

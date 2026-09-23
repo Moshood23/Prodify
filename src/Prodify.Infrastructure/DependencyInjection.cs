@@ -16,6 +16,7 @@ using Prodify.Infrastructure.Notifications;
 using Prodify.Infrastructure.Payments;
 using Prodify.Infrastructure.Persistence;
 using Prodify.Infrastructure.Persistence.Interceptors;
+using Prodify.Infrastructure.Persistence.Seed;
 
 namespace Prodify.Infrastructure;
 
@@ -25,7 +26,6 @@ public static class DependencyInjection
     {
         services.AddSingleton<DomainEventInterceptor>();
         services.AddScoped<AuditableEntityInterceptor>();
-
         services.AddDbContext<ProdifyDbContext>((sp, options) =>
         {
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
@@ -37,12 +37,16 @@ public static class DependencyInjection
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
         {
             options.Password.RequiredLength = 8;
+            options.User.RequireUniqueEmail = true;
         })
             .AddEntityFrameworkStores<ProdifyDbContext>()
             .AddDefaultTokenProviders();
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddSingleton<JwtService>();
+
+        services.Configure<SeedAdminSettings>(configuration.GetSection("SeedAdmin"));
+        services.AddScoped<IdentitySeeder>();
 
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
 

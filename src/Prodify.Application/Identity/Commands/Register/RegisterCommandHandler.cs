@@ -1,7 +1,9 @@
 ﻿using MediatR;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 using Prodify.Domain.Customers.Entities;
+
 
 namespace Prodify.Application.Identity.Commands.Register;
 
@@ -23,7 +25,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var result = await _identityService.RegisterAsync(request.Email, request.Password, customer.Id, null, cancellationToken);
+        var result = await _identityService.RegisterAsync(
+            request.Email, request.Password, customer.Id, null, Roles.Customer, cancellationToken);
 
         if (!result.Succeeded)
             throw new BusinessRuleException(string.Join(" ", result.Errors));
