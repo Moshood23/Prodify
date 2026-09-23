@@ -58,8 +58,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
-    public IQueryable<SellerOrder> SellerOrders => throw new NotImplementedException();
-
+    public DbSet<SellerOrder> SellerOrders => Set<SellerOrder>();
     // IApplicationDbContext explicit IQueryable projections
     IQueryable<Product> IApplicationDbContext.Products => Products;
     IQueryable<ProductVariant> IApplicationDbContext.ProductVariants => ProductVariants;
@@ -75,6 +74,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Seller> IApplicationDbContext.Sellers => Sellers;
     IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
     IQueryable<Domain.Shipping.Entities.Shipment> IApplicationDbContext.Shipments => Shipments;
+    IQueryable<SellerOrder> IApplicationDbContext.SellerOrders => SellerOrders;
     public new void Add<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Add(entity);
     public new void Remove<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Remove(entity);
     protected override void OnModelCreating(ModelBuilder modelBuilder)
