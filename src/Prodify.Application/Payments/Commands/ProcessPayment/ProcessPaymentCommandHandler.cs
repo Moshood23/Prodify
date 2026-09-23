@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 using Prodify.Domain.Payments.Entities;
 
 namespace Prodify.Application.Payments.Commands.ProcessPayment;
@@ -9,11 +10,13 @@ namespace Prodify.Application.Payments.Commands.ProcessPayment;
 public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private readonly IPaymentService _paymentService;
 
-    public ProcessPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService)
+    public ProcessPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
         _paymentService = paymentService;
     }
 
@@ -23,7 +26,7 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
             .Include(o => o.Items)
             .FirstOrDefaultAsync(o => o.Id == request.OrderId, cancellationToken);
 
-        if (order is null)
+        if (order is null || order.CustomerId != _currentUser.CustomerId)
             throw new NotFoundException("Order", request.OrderId);
 
         if (order.IsPaid)
@@ -44,7 +47,6 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
         {
             payment.FailAttempt(attempt.Id, result.FailureReason);
         }
-
 
         return payment.Id;
     }

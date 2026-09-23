@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 using Prodify.Application.Customers.Commands.AddCustomerAddress;
 using Prodify.Application.Customers.Commands.RegisterCustomer;
 using Prodify.Application.Customers.Queries.GetCustomer;
-using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
@@ -14,10 +15,12 @@ namespace Prodify.Api.Controllers;
 public class CustomersController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ICurrentUserService _currentUser;
 
-    public CustomersController(IMediator mediator)
+    public CustomersController(IMediator mediator, ICurrentUserService currentUser)
     {
         _mediator = mediator;
+        _currentUser = currentUser;
     }
 
     // Shoppers sign up through POST /api/auth/register; this endpoint is for admins.
@@ -29,18 +32,27 @@ public class CustomersController : ControllerBase
         return CreatedAtAction(nameof(Get), new { id }, id);
     }
 
+    [Authorize(Roles = Roles.Customer)]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetCustomerQuery { Id = _currentUser.GetRequiredCustomerId() }, cancellationToken);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = Roles.Customer)]
+    [HttpPost("me/addresses")]
+    public async Task<IActionResult> AddAddress(AddCustomerAddressCommand command, CancellationToken cancellationToken)
+    {
+        var addressId = await _mediator.Send(command, cancellationToken);
+        return Ok(addressId);
+    }
+
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetCustomerQuery { Id = id }, cancellationToken);
         return Ok(result);
-    }
-
-    [HttpPost("{id:guid}/addresses")]
-    public async Task<IActionResult> AddAddress(Guid id, AddCustomerAddressCommand command, CancellationToken cancellationToken)
-    {
-        command.CustomerId = id;
-        var addressId = await _mediator.Send(command, cancellationToken);
-        return Ok(addressId);
     }
 }

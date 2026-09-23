@@ -6,9 +6,6 @@ public class RemoveCartItemCommandValidator : AbstractValidator<RemoveCartItemCo
 {
     public RemoveCartItemCommandValidator()
     {
-        RuleFor(x => x.CartId)
-            .NotEmpty();
-
         RuleFor(x => x.CartItemId)
             .NotEmpty();
     }

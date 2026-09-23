@@ -6,9 +6,6 @@ public class AddCustomerAddressCommandValidator : AbstractValidator<AddCustomerA
 {
     public AddCustomerAddressCommandValidator()
     {
-        RuleFor(x => x.CustomerId)
-            .NotEmpty();
-
         RuleFor(x => x.Label)
             .NotEmpty()
             .MaximumLength(100);

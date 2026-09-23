@@ -45,4 +45,5 @@ public class CurrentUserService : ICurrentUserService
             return Guid.TryParse(value, out var id) ? id : null;
         }
     }
+    public bool IsInRole(string role) => User?.IsInRole(role) ?? false;
 }

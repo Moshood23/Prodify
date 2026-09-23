@@ -8,16 +8,24 @@ namespace Prodify.Application.Notifications.Queries.GetNotifications;
 public class GetNotificationsQueryHandler : IRequestHandler<GetNotificationsQuery, PaginatedList<NotificationDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetNotificationsQueryHandler(IApplicationDbContext context)
+    public GetNotificationsQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<PaginatedList<NotificationDto>> Handle(GetNotificationsQuery request, CancellationToken cancellationToken)
     {
+        // Notifications are addressed to a customer or seller profile, never to a raw user id.
+        var recipientIds = new[] { _currentUser.CustomerId, _currentUser.SellerId }
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
+
         var query = _context.Notifications
-            .Where(n => n.RecipientId == request.RecipientId);
+            .Where(n => recipientIds.Contains(n.RecipientId));
 
         if (request.UnreadOnly == true)
             query = query.Where(n => !n.IsRead);

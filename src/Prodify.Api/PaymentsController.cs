@@ -35,6 +35,7 @@ public class PaymentsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = Roles.Customer)]
     [HttpPost("{id:guid}/retry")]
     public async Task<IActionResult> Retry(Guid id, [FromBody] string paymentMethodToken, CancellationToken cancellationToken)
     {

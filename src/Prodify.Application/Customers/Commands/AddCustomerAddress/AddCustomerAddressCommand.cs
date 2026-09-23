@@ -4,7 +4,6 @@ namespace Prodify.Application.Customers.Commands.AddCustomerAddress;
 
 public class AddCustomerAddressCommand : IRequest<Guid>
 {
-    public Guid CustomerId { get; set; }
     public string Label { get; set; } = null!;
     public string RecipientName { get; set; } = null!;
     public string AddressLine1 { get; set; } = null!;

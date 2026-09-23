@@ -7,6 +7,7 @@ using Prodify.Application.Shipping.Commands.ShipOrder;
 using Prodify.Application.Shipping.Commands.UpdateShipmentStatus;
 using Prodify.Application.Shipping.Queries.GetShipment;
 using Prodify.Application.Shipping.Queries.GetTracking;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
@@ -22,6 +23,7 @@ public class ShipmentsController : ControllerBase
         _mediator = mediator;
     }
 
+    [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpPost]
     public async Task<IActionResult> Create(CreateShipmentCommand command, CancellationToken cancellationToken)
     {
@@ -43,6 +45,7 @@ public class ShipmentsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpPost("{id:guid}/ship")]
     public async Task<IActionResult> Ship(Guid id, ShipOrderCommand command, CancellationToken cancellationToken)
     {
@@ -51,6 +54,7 @@ public class ShipmentsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpPost("{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, UpdateShipmentStatusCommand command, CancellationToken cancellationToken)
     {
@@ -59,6 +63,7 @@ public class ShipmentsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpPost("{id:guid}/deliver")]
     public async Task<IActionResult> MarkDelivered(Guid id, CancellationToken cancellationToken)
     {

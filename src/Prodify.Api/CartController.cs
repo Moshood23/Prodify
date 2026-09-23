@@ -28,16 +28,16 @@ public class CartController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] GetCartQuery query, CancellationToken cancellationToken)
+    public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await _mediator.Send(new GetCartQuery(), cancellationToken);
         return Ok(result);
     }
 
-    [HttpDelete("{cartId:guid}/items/{cartItemId:guid}")]
-    public async Task<IActionResult> RemoveItem(Guid cartId, Guid cartItemId, CancellationToken cancellationToken)
+    [HttpDelete("items/{cartItemId:guid}")]
+    public async Task<IActionResult> RemoveItem(Guid cartItemId, CancellationToken cancellationToken)
     {
-        await _mediator.Send(new RemoveCartItemCommand { CartId = cartId, CartItemId = cartItemId }, cancellationToken);
+        await _mediator.Send(new RemoveCartItemCommand { CartItemId = cartItemId }, cancellationToken);
         return NoContent();
     }
 }

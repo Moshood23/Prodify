@@ -2,20 +2,26 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Application.Customers.Queries.GetCustomer;
 
 public class GetCustomerQueryHandler : IRequestHandler<GetCustomerQuery, CustomerDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetCustomerQueryHandler(IApplicationDbContext context)
+    public GetCustomerQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<CustomerDto> Handle(GetCustomerQuery request, CancellationToken cancellationToken)
     {
+        if (!_currentUser.IsAdmin() && request.Id != _currentUser.CustomerId)
+            throw new NotFoundException("Customer", request.Id);
+
         var customer = await _context.Customers
             .Where(c => c.Id == request.Id)
             .Select(c => new CustomerDto
