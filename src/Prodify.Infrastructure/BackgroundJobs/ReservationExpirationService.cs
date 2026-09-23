@@ -33,6 +33,7 @@ public class ReservationExpirationService : BackgroundService
                 var now = DateTime.UtcNow;
 
                 var itemsWithExpiredReservations = await dbContext.InventoryItems
+                    .Include(i => i.Reservations)
                     .Where(i => i.Reservations.Any(r => r.Status == ReservationStatus.Active && r.ExpiresAt <= now))
                     .ToListAsync(stoppingToken);
 

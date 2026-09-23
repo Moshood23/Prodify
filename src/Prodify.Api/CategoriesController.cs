@@ -1,6 +1,8 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Catalog.Categories.Commands.CreateCategory;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
@@ -15,6 +17,7 @@ public class CategoriesController : ControllerBase
         _mediator = mediator;
     }
 
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Create(CreateCategoryCommand command, CancellationToken cancellationToken)
     {

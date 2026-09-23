@@ -4,12 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Cart.Commands.AddToCart;
 using Prodify.Application.Cart.Commands.RemoveCartItem;
 using Prodify.Application.Cart.Queries.GetCart;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = Roles.Customer)]
 public class CartController : ControllerBase
 {
     private readonly IMediator _mediator;

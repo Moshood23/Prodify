@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Ordering.Commands.PlaceOrder;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = Roles.Customer)]
 public class CheckoutController : ControllerBase
 {
     private readonly IMediator _mediator;

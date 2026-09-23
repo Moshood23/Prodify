@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Customers.Commands.AddCustomerAddress;
 using Prodify.Application.Customers.Commands.RegisterCustomer;
 using Prodify.Application.Customers.Queries.GetCustomer;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
@@ -19,6 +20,8 @@ public class CustomersController : ControllerBase
         _mediator = mediator;
     }
 
+    // Shoppers sign up through POST /api/auth/register; this endpoint is for admins.
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Register(RegisterCustomerCommand command, CancellationToken cancellationToken)
     {
