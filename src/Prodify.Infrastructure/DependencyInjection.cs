@@ -55,20 +55,26 @@ public static class DependencyInjection
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings?.Issuer,
-                    ValidAudience = jwtSettings?.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtSettings?.SecretKey ?? string.Empty))
-                };
-            });
+                        .AddJwtBearer(options =>
+                        {
+                            // Keep claim names exactly as written in the token ("sub", "role", "customerId").
+                            options.MapInboundClaims = false;
+
+                            options.TokenValidationParameters = new TokenValidationParameters
+                            {
+                                NameClaimType = "sub",
+                                RoleClaimType = "role",
+                                ValidateIssuer = true,
+                                ValidateAudience = true,
+                                ValidateLifetime = true,
+                                ValidateIssuerSigningKey = true,
+                                ValidIssuer = jwtSettings?.Issuer,
+                                ValidAudience = jwtSettings?.Audience,
+                                IssuerSigningKey = new SymmetricSecurityKey(
+                                    Encoding.UTF8.GetBytes(jwtSettings?.SecretKey ?? string.Empty))
+                            };
+                        });
+
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

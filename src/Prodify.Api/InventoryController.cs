@@ -1,14 +1,17 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Inventory.Commands.CreateWarehouse;
 using Prodify.Application.Inventory.Commands.ReserveStock;
 using Prodify.Application.Inventory.Queries.GetInventory;
 using Prodify.Application.Inventory.Commands.CreateInventoryItem;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = Roles.SellerOrAdmin)]
 public class InventoryController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -32,6 +35,8 @@ public class InventoryController : ControllerBase
         return Ok(result);
     }
 
+    // Stock is reserved by checkout; calling this directly is an admin-only tool.
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost("reserve")]
     public async Task<IActionResult> Reserve(ReserveStockCommand command, CancellationToken cancellationToken)
     {

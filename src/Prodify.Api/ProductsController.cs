@@ -1,10 +1,12 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Catalog.Products.Commands.CreateProduct;
 using Prodify.Application.Catalog.Products.Commands.UpdateProduct;
 using Prodify.Application.Catalog.Products.Queries.GetProduct;
 using Prodify.Application.Catalog.Products.Queries.ListProducts;
 using Prodify.Application.Catalog.Products.Commands.CreateProductVariant;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
 
@@ -19,6 +21,7 @@ public class ProductsController : ControllerBase
         _mediator = mediator;
     }
 
+    [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpPost]
     public async Task<IActionResult> Create(CreateProductCommand command, CancellationToken cancellationToken)
     {
@@ -40,6 +43,7 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateProductCommand command, CancellationToken cancellationToken)
     {
@@ -48,6 +52,7 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpPost("{productId:guid}/variants")]
     public async Task<IActionResult> CreateVariant(Guid productId, CreateProductVariantCommand command, CancellationToken cancellationToken)
     {
