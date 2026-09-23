@@ -58,6 +58,9 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    // Identity
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     public DbSet<SellerOrder> SellerOrders => Set<SellerOrder>();
     // IApplicationDbContext explicit IQueryable projections
     IQueryable<Product> IApplicationDbContext.Products => Products;

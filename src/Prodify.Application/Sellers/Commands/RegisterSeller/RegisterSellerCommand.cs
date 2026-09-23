@@ -16,4 +16,5 @@ public class RegisterSellerResult
 
     // A fresh token that includes the new "sellerId" and the Seller role.
     public string Token { get; set; } = null!;
+    public string RefreshToken { get; set; } = null!;
 }

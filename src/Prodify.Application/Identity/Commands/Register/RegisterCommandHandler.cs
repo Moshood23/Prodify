@@ -41,6 +41,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
         return new AuthResultDto
         {
             Token = result.Token!,
+            RefreshToken = result.RefreshToken!,
             UserId = result.UserId!.Value
         };
     }

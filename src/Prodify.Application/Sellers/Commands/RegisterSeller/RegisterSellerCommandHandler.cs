@@ -53,7 +53,8 @@ public class RegisterSellerCommandHandler : IRequestHandler<RegisterSellerComman
         {
             SellerId = seller.Id,
             Status = seller.Status.ToString(),
-            Token = result.Token!
+            Token = result.Token!,
+            RefreshToken = result.RefreshToken!
         };
     }
 }
