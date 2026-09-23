@@ -6,4 +6,5 @@ public interface ICurrentUserService
     Guid? CustomerId { get; }
     Guid? SellerId { get; }
     bool IsAuthenticated { get; }
+    bool IsInRole(string role);
 }

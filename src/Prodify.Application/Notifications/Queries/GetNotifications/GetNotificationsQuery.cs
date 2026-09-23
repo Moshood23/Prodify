@@ -5,7 +5,6 @@ namespace Prodify.Application.Notifications.Queries.GetNotifications;
 
 public class GetNotificationsQuery : IRequest<PaginatedList<NotificationDto>>
 {
-    public Guid RecipientId { get; set; }
     public bool? UnreadOnly { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 20;

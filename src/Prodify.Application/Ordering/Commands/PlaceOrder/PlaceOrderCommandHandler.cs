@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Ordering.ValueObjects;
 
@@ -10,18 +11,22 @@ namespace Prodify.Application.Ordering.Commands.PlaceOrder;
 public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private const int DefaultReservationExpiryMinutes = 30;
 
-    public PlaceOrderCommandHandler(IApplicationDbContext context)
+    public PlaceOrderCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<Guid> Handle(PlaceOrderCommand request, CancellationToken cancellationToken)
     {
+        var customerId = _currentUser.GetRequiredCustomerId();
+
         var cart = await _context.Carts
             .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId, cancellationToken);
+            .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken);
 
         if (cart is null || !cart.Items.Any())
             throw new BusinessRuleException("Cart is empty or does not exist.");
@@ -71,7 +76,7 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
             request.AddressLine2,
             request.PostalCode);
 
-        var order = Order.Place(request.CustomerId, shippingAddress, lineItems);
+        var order = Order.Place(customerId, shippingAddress, lineItems);
 
         _context.Add(order);
 

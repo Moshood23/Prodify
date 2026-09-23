@@ -2,17 +2,20 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Application.Payments.Commands.RetryPayment;
 
 public class RetryPaymentCommandHandler : IRequestHandler<RetryPaymentCommand>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private readonly IPaymentService _paymentService;
 
-    public RetryPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService)
+    public RetryPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
         _paymentService = paymentService;
     }
 
@@ -24,22 +27,23 @@ public class RetryPaymentCommandHandler : IRequestHandler<RetryPaymentCommand>
         if (payment is null)
             throw new NotFoundException("Payment", request.PaymentId);
 
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(o => o.Id == payment.OrderId, cancellationToken);
+
+        if (order is null || order.CustomerId != _currentUser.CustomerId)
+            throw new NotFoundException("Payment", request.PaymentId);
+
         var attempt = payment.StartAttempt();
         var result = await _paymentService.ChargeAsync(payment.Amount, request.PaymentMethodToken, cancellationToken);
 
         if (result.Succeeded)
         {
             payment.CompleteAttempt(attempt.Id, result.GatewayReference!);
-
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.Id == payment.OrderId, cancellationToken);
-
-            order?.MarkAsPaid(payment.Id);
+            order.MarkAsPaid(payment.Id);
         }
         else
         {
             payment.FailAttempt(attempt.Id, result.FailureReason);
         }
-
     }
 }

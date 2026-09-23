@@ -8,10 +8,12 @@ namespace Prodify.Application.Notifications.Commands.MarkAsRead;
 public class MarkAsReadCommandHandler : IRequestHandler<MarkAsReadCommand>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public MarkAsReadCommandHandler(IApplicationDbContext context)
+    public MarkAsReadCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task Handle(MarkAsReadCommand request, CancellationToken cancellationToken)
@@ -19,10 +21,12 @@ public class MarkAsReadCommandHandler : IRequestHandler<MarkAsReadCommand>
         var notification = await _context.Notifications
             .FirstOrDefaultAsync(n => n.Id == request.NotificationId, cancellationToken);
 
-        if (notification is null)
+        var isRecipient = notification is not null
+            && (notification.RecipientId == _currentUser.CustomerId || notification.RecipientId == _currentUser.SellerId);
+
+        if (!isRecipient)
             throw new NotFoundException("Notification", request.NotificationId);
 
-        notification.MarkAsRead();
-
+        notification!.MarkAsRead();
     }
 }

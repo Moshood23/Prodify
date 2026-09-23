@@ -1,26 +1,27 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Application.Cart.Queries.GetCart;
 
 public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetCartQueryHandler(IApplicationDbContext context)
+    public GetCartQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<CartDto> Handle(GetCartQuery request, CancellationToken cancellationToken)
     {
-        var query = request.CustomerId.HasValue
-            ? _context.Carts.Where(c => c.CustomerId == request.CustomerId)
-            : _context.Carts.Where(c => c.SessionId == request.SessionId);
+        var customerId = _currentUser.GetRequiredCustomerId();
 
-        var cart = await query
+        var cart = await _context.Carts
+            .Where(c => c.CustomerId == customerId)
             .Select(c => new CartDto
             {
                 Id = c.Id,
@@ -36,9 +37,7 @@ public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartDto>
             })
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (cart is null)
-            throw new NotFoundException("Cart", request.CustomerId?.ToString() ?? request.SessionId ?? "unknown");
-
-        return cart;
+        // A customer who has not added anything yet simply has an empty cart.
+        return cart ?? new CartDto();
     }
 }

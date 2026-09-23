@@ -4,7 +4,6 @@ namespace Prodify.Application.Ordering.Commands.PlaceOrder;
 
 public class PlaceOrderCommand : IRequest<Guid>
 {
-    public Guid CustomerId { get; set; }
     public string RecipientName { get; set; } = null!;
     public string AddressLine1 { get; set; } = null!;
     public string? AddressLine2 { get; set; }

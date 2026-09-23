@@ -4,8 +4,7 @@ namespace Prodify.Application.Cart.Queries.GetCart;
 
 public class GetCartQuery : IRequest<CartDto>
 {
-    public Guid? CustomerId { get; set; }
-    public string? SessionId { get; set; }
+ 
 }
 
 public class CartDto

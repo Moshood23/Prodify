@@ -6,9 +6,6 @@ public class PlaceOrderCommandValidator : AbstractValidator<PlaceOrderCommand>
 {
     public PlaceOrderCommandValidator()
     {
-        RuleFor(x => x.CustomerId)
-            .NotEmpty();
-
         RuleFor(x => x.RecipientName)
             .NotEmpty()
             .MaximumLength(200);
