@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Common.Security;
 
 namespace Prodify.Infrastructure.Identity;
 
@@ -56,6 +57,50 @@ public class IdentityService : IIdentityService
         {
             return new Application.Common.Interfaces.IdentityResult(
                 false, null, null, new[] { "Invalid email or password." });
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = _jwtService.GenerateToken(user, roles);
+
+        return new Application.Common.Interfaces.IdentityResult(true, user.Id, token, Enumerable.Empty<string>());
+    }
+
+    public async Task<Application.Common.Interfaces.IdentityResult> AddSellerAccountAsync(
+        Guid userId, Guid sellerId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user is null)
+        {
+            return new Application.Common.Interfaces.IdentityResult(
+                false, null, null, new[] { "User not found." });
+        }
+
+        if (user.SellerId.HasValue)
+        {
+            return new Application.Common.Interfaces.IdentityResult(
+                false, null, null, new[] { "This account is already registered as a seller." });
+        }
+
+        user.SellerId = sellerId;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+
+        if (!updateResult.Succeeded)
+        {
+            return new Application.Common.Interfaces.IdentityResult(
+                false, null, null, updateResult.Errors.Select(e => e.Description));
+        }
+
+        if (!await _userManager.IsInRoleAsync(user, Roles.Seller))
+        {
+            var roleResult = await _userManager.AddToRoleAsync(user, Roles.Seller);
+
+            if (!roleResult.Succeeded)
+            {
+                return new Application.Common.Interfaces.IdentityResult(
+                    false, null, null, roleResult.Errors.Select(e => e.Description));
+            }
         }
 
         var roles = await _userManager.GetRolesAsync(user);

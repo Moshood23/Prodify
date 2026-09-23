@@ -5,7 +5,7 @@ using Prodify.Application.Common.Interfaces;
 namespace Prodify.Application.Common.Behaviors;
 
 public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+        where TRequest : notnull
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<TransactionBehavior<TRequest, TResponse>> _logger;

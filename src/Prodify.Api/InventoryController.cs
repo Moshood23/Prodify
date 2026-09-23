@@ -21,6 +21,8 @@ public class InventoryController : ControllerBase
         _mediator = mediator;
     }
 
+    // Warehouses are Prodify fulfilment centres, so only admins create them.
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost("warehouses")]
     public async Task<IActionResult> CreateWarehouse(CreateWarehouseCommand command, CancellationToken cancellationToken)
     {
