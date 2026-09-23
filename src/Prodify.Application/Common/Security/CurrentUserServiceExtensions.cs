@@ -11,4 +11,12 @@ public static class CurrentUserServiceExtensions
     public static Guid GetRequiredCustomerId(this ICurrentUserService currentUser) =>
         currentUser.CustomerId
         ?? throw new ForbiddenAccessException("This action requires a customer account.");
+
+    public static Guid GetRequiredSellerId(this ICurrentUserService currentUser) =>
+        currentUser.SellerId
+        ?? throw new ForbiddenAccessException("This action requires a seller account.");
+
+    // Admins manage everything; a seller manages only what belongs to their own seller account.
+    public static bool CanManageSeller(this ICurrentUserService currentUser, Guid sellerId) =>
+        currentUser.IsAdmin() || currentUser.SellerId == sellerId;
 }
