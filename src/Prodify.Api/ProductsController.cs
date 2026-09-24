@@ -6,6 +6,8 @@ using Prodify.Application.Catalog.Products.Commands.UpdateProduct;
 using Prodify.Application.Catalog.Products.Queries.GetProduct;
 using Prodify.Application.Catalog.Products.Queries.ListProducts;
 using Prodify.Application.Catalog.Products.Commands.CreateProductVariant;
+using Prodify.Application.Catalog.Products.Commands.AddProductImage;
+using Prodify.Application.Catalog.Products.Commands.RemoveProductImage;
 using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
@@ -59,5 +61,22 @@ public class ProductsController : ControllerBase
         command.ProductId = productId;
         var id = await _mediator.Send(command, cancellationToken);
         return Ok(id);
+    }
+
+    [Authorize(Roles = Roles.SellerOrAdmin)]
+    [HttpPost("{productId:guid}/images")]
+    public async Task<IActionResult> AddImage(Guid productId, AddProductImageCommand command, CancellationToken cancellationToken)
+    {
+        command.ProductId = productId;
+        var id = await _mediator.Send(command, cancellationToken);
+        return Ok(id);
+    }
+
+    [Authorize(Roles = Roles.SellerOrAdmin)]
+    [HttpDelete("{productId:guid}/images/{imageId:guid}")]
+    public async Task<IActionResult> RemoveImage(Guid productId, Guid imageId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new RemoveProductImageCommand { ProductId = productId, ImageId = imageId }, cancellationToken);
+        return NoContent();
     }
 }
