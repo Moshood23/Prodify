@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Catalog.Categories.Commands.CreateCategory;
+using Prodify.Application.Catalog.Categories.Queries.ListCategories;
 using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
@@ -15,6 +16,13 @@ public class CategoriesController : ControllerBase
     public CategoriesController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> List(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new ListCategoriesQuery(), cancellationToken);
+        return Ok(result);
     }
 
     [Authorize(Roles = Roles.Admin)]

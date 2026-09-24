@@ -25,8 +25,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
         var emailTaken = await _context.Customers.AnyAsync(c => c.Email == email, cancellationToken);
 
         if (emailTaken)
-            
-            throw new ConflictException($"An account with email '{email}' already exists.");
+        throw new ConflictException($"An account with email '{email}' already exists.");
 
         var customer = Customer.Create(request.FirstName, request.LastName, request.Email, request.PhoneNumber);
         _context.Add(customer);
