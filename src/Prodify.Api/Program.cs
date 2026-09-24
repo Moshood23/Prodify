@@ -61,6 +61,9 @@ using (var scope = app.Services.CreateScope())
 
     var identitySeeder = scope.ServiceProvider.GetRequiredService<IdentitySeeder>();
     await identitySeeder.SeedAsync();
+
+    var demoCatalogSeeder = scope.ServiceProvider.GetRequiredService<DemoCatalogSeeder>();
+    await demoCatalogSeeder.SeedAsync();
 }
 app.UseMiddleware<Prodify.Api.Middleware.CorrelationIdMiddleware>();
 app.UseMiddleware<Prodify.Api.Middleware.ExceptionHandlingMiddleware>();

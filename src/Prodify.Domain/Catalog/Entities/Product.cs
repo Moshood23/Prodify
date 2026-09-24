@@ -63,7 +63,8 @@ public class Product : AuditableEntity
 
     public ProductImage AddImage(string url, string? altText = null)
     {
-        var displayOrder = _images.Count;
+        // Next position after the last image (removing images can leave gaps).
+        var displayOrder = _images.Count == 0 ? 0 : _images.Max(i => i.DisplayOrder) + 1;
         var image = ProductImage.Create(Id, url, altText, displayOrder);
         _images.Add(image);
 

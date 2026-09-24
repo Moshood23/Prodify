@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Catalog.Brands.Commands.CreateBrand;
+using Prodify.Application.Catalog.Brands.Queries.ListBrands;
 using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
@@ -15,6 +16,13 @@ public class BrandsController : ControllerBase
     public BrandsController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> List(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new ListBrandsQuery(), cancellationToken);
+        return Ok(result);
     }
 
     [Authorize(Roles = Roles.Admin)]

@@ -47,6 +47,8 @@ public static class DependencyInjection
 
         services.Configure<SeedAdminSettings>(configuration.GetSection("SeedAdmin"));
         services.AddScoped<IdentitySeeder>();
+        services.Configure<DemoDataSettings>(configuration.GetSection("DemoData"));
+        services.AddScoped<DemoCatalogSeeder>();
 
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
 
