@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Prodify.Domain.Ordering.Entities;
 
 namespace Prodify.Application.Ordering.Commands.PlaceOrder;
 
@@ -35,5 +36,9 @@ public class PlaceOrderCommandValidator : AbstractValidator<PlaceOrderCommand>
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
             .MaximumLength(20);
+
+        RuleFor(x => x.PaymentMethod)
+            .Must(method => Enum.TryParse<PaymentMethod>(method, ignoreCase: true, out _))
+            .WithMessage("Payment method must be 'Card' or 'PayOnDelivery'.");
     }
 }

@@ -31,7 +31,10 @@ public class StockReservationConfiguration : IEntityTypeConfiguration<StockReser
         builder.Property(r => r.ExpiresAt)
             .IsRequired();
 
+        builder.Property(r => r.OrderId);
+
         builder.HasIndex(r => r.InventoryItemId);
+        builder.HasIndex(r => r.OrderId);
         builder.HasIndex(r => r.ExpiresAt);
     }
 }
