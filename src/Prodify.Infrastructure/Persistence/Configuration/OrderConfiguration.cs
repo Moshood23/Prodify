@@ -43,7 +43,6 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .IsRequired();
 
 
-        // Orders placed before payment methods existed were all card orders.
         builder.Property(o => o.PaymentMethod)
             .IsRequired()
             .HasConversion<string>()
