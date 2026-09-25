@@ -67,4 +67,53 @@ public class SellerTests
 
         Assert.Single(seller.Addresses);
     }
+
+
+    [Fact]
+    public void Reject_WithReason_StoresReasonAndDate()
+    {
+        var seller = Seller.Create("Test Store", "store@test.com");
+
+        seller.Reject("Business details could not be verified.");
+
+        Assert.Equal(SellerStatus.Rejected, seller.Status);
+        Assert.Equal("Business details could not be verified.", seller.StatusReason);
+        Assert.NotNull(seller.StatusChangedAt);
+    }
+
+    [Fact]
+    public void Reinstate_ClearsSuspensionReason()
+    {
+        var seller = Seller.Create("Test Store", "store@test.com");
+        seller.Approve();
+        seller.Suspend("Too many late deliveries.");
+
+        seller.Reinstate();
+
+        Assert.Equal(SellerStatus.Approved, seller.Status);
+        Assert.Null(seller.StatusReason);
+    }
+
+    [Fact]
+    public void Reapply_AfterRejection_GoesBackToPendingWithNewDetails()
+    {
+        var seller = Seller.Create("Test Store", "store@test.com");
+        seller.Reject("Please add a phone number.");
+
+        seller.Reapply("Test Store Ltd", "08031234567", "Phones and accessories");
+
+        Assert.Equal(SellerStatus.PendingVerification, seller.Status);
+        Assert.Null(seller.StatusReason);
+        Assert.Equal("Test Store Ltd", seller.BusinessName);
+        Assert.Equal("08031234567", seller.PhoneNumber);
+        Assert.Equal("Phones and accessories", seller.Description);
+    }
+
+    [Fact]
+    public void Reapply_WhenNotRejected_ThrowsInvalidOperationException()
+    {
+        var seller = Seller.Create("Test Store", "store@test.com");
+
+        Assert.Throws<InvalidOperationException>(() => seller.Reapply("Test Store", null, null));
+    }
 }

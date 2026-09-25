@@ -33,6 +33,17 @@ public class SellerConfiguration : IEntityTypeConfiguration<Seller>
             .HasConversion<string>()
             .HasMaxLength(30);
 
+
+        builder.Property(s => s.Description)
+            .HasMaxLength(1000);
+
+        builder.Property(s => s.StatusReason)
+            .HasMaxLength(500);
+
+        builder.Property(s => s.StatusChangedAt);
+
+        builder.HasIndex(s => s.Status);
+
         builder.Property(s => s.CreatedAt).IsRequired();
         builder.Property(s => s.CreatedBy).HasMaxLength(256);
         builder.Property(s => s.ModifiedAt);
