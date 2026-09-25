@@ -38,10 +38,11 @@ public class RegisterSellerCommandHandler : IRequestHandler<RegisterSellerComman
         if (emailExists)
             throw new ConflictException($"A seller with email '{email}' already exists.");
 
-        var seller = Seller.Create(request.BusinessName, request.Email, request.PhoneNumber);
+        // New sellers wait for an admin to approve them before they can list products.
+        var seller = Seller.Create(request.BusinessName, request.Email, request.PhoneNumber, request.Description);
+        seller.AddAddress(request.AddressLine1, request.City, request.State, "Nigeria", request.PhoneNumber, request.AddressLine2);
 
         _context.Add(seller);
-
         await _context.SaveChangesAsync(cancellationToken);
 
         var result = await _identityService.AddSellerAccountAsync(userId, seller.Id, cancellationToken);

@@ -1,7 +1,6 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Sellers.Common;
 
 namespace Prodify.Application.Sellers.Commands.ApproveSeller;
 
@@ -16,13 +15,7 @@ public class ApproveSellerCommandHandler : IRequestHandler<ApproveSellerCommand>
 
     public async Task Handle(ApproveSellerCommand request, CancellationToken cancellationToken)
     {
-        var seller = await _context.Sellers
-            .FirstOrDefaultAsync(s => s.Id == request.SellerId, cancellationToken);
-
-        if (seller is null)
-            throw new NotFoundException("Seller", request.SellerId);
-
+        var seller = await _context.GetSellerOrThrowAsync(request.SellerId, cancellationToken);
         seller.Approve();
-
     }
 }

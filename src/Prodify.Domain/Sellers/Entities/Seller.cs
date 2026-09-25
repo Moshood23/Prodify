@@ -17,22 +17,34 @@ public class Seller : AuditableEntity
     public string BusinessName { get; private set; } = null!;
     public string Email { get; private set; } = null!;
     public string? PhoneNumber { get; private set; }
+
+    // Shown to shoppers on the seller's store page.
+    public string? Description { get; private set; }
+
     public SellerStatus Status { get; private set; }
 
+    // Why the application was rejected or the store suspended; shown to the seller.
+    public string? StatusReason { get; private set; }
+
+    // When an admin last approved, rejected, suspended or reinstated the seller.
+    public DateTime? StatusChangedAt { get; private set; }
+
     public ICollection<SellerAddress> Addresses => _addresses;
+
     private Seller()
     {
     }
 
-    private Seller(Guid id, string businessName, string email, string? phoneNumber) : base(id)
+    private Seller(Guid id, string businessName, string email, string? phoneNumber, string? description) : base(id)
     {
         BusinessName = businessName;
         Email = email;
         PhoneNumber = phoneNumber;
+        Description = description;
         Status = SellerStatus.PendingVerification;
     }
 
-    public static Seller Create(string businessName, string email, string? phoneNumber = null)
+    public static Seller Create(string businessName, string email, string? phoneNumber = null, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(businessName))
             throw new ArgumentException("Business name cannot be empty.", nameof(businessName));
@@ -40,16 +52,22 @@ public class Seller : AuditableEntity
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("Email cannot be empty.", nameof(email));
 
-        return new Seller(Guid.NewGuid(), businessName.Trim(), email.Trim().ToLowerInvariant(), phoneNumber?.Trim());
+        return new Seller(
+            Guid.NewGuid(),
+            businessName.Trim(),
+            email.Trim().ToLowerInvariant(),
+            phoneNumber?.Trim(),
+            string.IsNullOrWhiteSpace(description) ? null : description.Trim());
     }
 
-    public void UpdateProfile(string businessName, string? phoneNumber)
+    public void UpdateProfile(string businessName, string? phoneNumber, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(businessName))
             throw new ArgumentException("Business name cannot be empty.", nameof(businessName));
 
         BusinessName = businessName.Trim();
         PhoneNumber = phoneNumber?.Trim();
+        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
     }
 
     public void Approve()
@@ -57,23 +75,23 @@ public class Seller : AuditableEntity
         if (Status != SellerStatus.PendingVerification)
             throw new InvalidOperationException($"Cannot approve a seller with status '{Status}'.");
 
-        Status = SellerStatus.Approved;
+        ChangeStatus(SellerStatus.Approved, null);
     }
 
-    public void Reject()
+    public void Reject(string? reason = null)
     {
         if (Status != SellerStatus.PendingVerification)
             throw new InvalidOperationException($"Cannot reject a seller with status '{Status}'.");
 
-        Status = SellerStatus.Rejected;
+        ChangeStatus(SellerStatus.Rejected, reason);
     }
 
-    public void Suspend()
+    public void Suspend(string? reason = null)
     {
         if (Status != SellerStatus.Approved)
             throw new InvalidOperationException($"Cannot suspend a seller with status '{Status}'.");
 
-        Status = SellerStatus.Suspended;
+        ChangeStatus(SellerStatus.Suspended, reason);
     }
 
     public void Reinstate()
@@ -81,7 +99,18 @@ public class Seller : AuditableEntity
         if (Status != SellerStatus.Suspended)
             throw new InvalidOperationException($"Cannot reinstate a seller with status '{Status}'.");
 
-        Status = SellerStatus.Approved;
+        ChangeStatus(SellerStatus.Approved, null);
+    }
+
+    // A rejected seller can fix their details and apply again.
+    public void Reapply(string businessName, string? phoneNumber, string? description)
+    {
+        if (Status != SellerStatus.Rejected)
+            throw new InvalidOperationException($"Only rejected sellers can reapply (status is '{Status}').");
+
+        UpdateProfile(businessName, phoneNumber, description);
+        Status = SellerStatus.PendingVerification;
+        StatusReason = null;
     }
 
     public SellerAddress AddAddress(
@@ -105,5 +134,12 @@ public class Seller : AuditableEntity
 
         if (address is not null)
             _addresses.Remove(address);
+    }
+
+    private void ChangeStatus(SellerStatus status, string? reason)
+    {
+        Status = status;
+        StatusReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+        StatusChangedAt = DateTime.UtcNow;
     }
 }
