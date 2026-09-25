@@ -42,6 +42,14 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.IsPaid)
             .IsRequired();
 
+
+        // Orders placed before payment methods existed were all card orders.
+        builder.Property(o => o.PaymentMethod)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(PaymentMethod.Card);
+
         builder.Property(o => o.CreatedAt).IsRequired();
         builder.Property(o => o.CreatedBy).HasMaxLength(256);
         builder.Property(o => o.ModifiedAt);

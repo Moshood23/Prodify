@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Prodify.Application.Cart.Common;
 
 namespace Prodify.Application.Cart.Commands.AddToCart;
 
@@ -10,6 +11,6 @@ public class AddToCartCommandValidator : AbstractValidator<AddToCartCommand>
             .NotEmpty();
 
         RuleFor(x => x.Quantity)
-            .GreaterThan(0);
+            .InclusiveBetween(1, CartRules.MaxQuantityPerItem);
     }
 }

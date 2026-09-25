@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Cart.Common;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
 
@@ -21,23 +22,50 @@ public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartDto>
         var customerId = _currentUser.GetRequiredCustomerId();
 
         var cart = await _context.Carts
-            .Where(c => c.CustomerId == customerId)
-            .Select(c => new CartDto
-            {
-                Id = c.Id,
-                Total = c.Total,
-                Items = c.Items.Select(i => new CartItemDto
-                {
-                    Id = i.Id,
-                    ProductVariantId = i.ProductVariantId,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice,
-                    Subtotal = i.Subtotal
-                }).ToList()
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken);
 
         // A customer who has not added anything yet simply has an empty cart.
-        return cart ?? new CartDto();
+        if (cart is null)
+            return new CartDto();
+
+        var variants = await _context.GetCartVariantsAsync(
+            cart.Items.Select(i => i.ProductVariantId).ToList(), cancellationToken);
+
+        var items = cart.Items
+            .Select(item =>
+            {
+                variants.TryGetValue(item.ProductVariantId, out var variant);
+                var unitPrice = variant?.Price ?? item.UnitPrice;
+                var isAvailable = variant?.IsAvailable ?? false;
+
+                return new CartItemDto
+                {
+                    Id = item.Id,
+                    ProductVariantId = item.ProductVariantId,
+                    ProductId = variant?.ProductId ?? Guid.Empty,
+                    ProductName = variant?.ProductName ?? "Product no longer available",
+                    VariantName = variant?.VariantName,
+                    ImageUrl = variant?.ImageUrl,
+                    Quantity = item.Quantity,
+                    UnitPrice = unitPrice,
+                    Subtotal = unitPrice * item.Quantity,
+                    AvailableQuantity = variant?.AvailableQuantity ?? 0,
+                    IsAvailable = isAvailable,
+                    InStock = isAvailable && (variant?.AvailableQuantity ?? 0) >= item.Quantity
+                };
+            })
+            .OrderBy(i => i.ProductName)
+            .ToList();
+
+        return new CartDto
+        {
+            Id = cart.Id,
+            Items = items,
+            ItemCount = items.Sum(i => i.Quantity),
+            // Items that can't be bought don't count towards what the customer will pay.
+            Total = items.Where(i => i.IsAvailable).Sum(i => i.Subtotal),
+            HasProblems = items.Any(i => !i.InStock)
+        };
     }
 }

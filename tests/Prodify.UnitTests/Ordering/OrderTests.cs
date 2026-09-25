@@ -97,4 +97,21 @@ public class OrderTests
 
         Assert.Equal(1000m, order.Total.Amount);
     }
+
+    [Fact]
+    public void Place_WithoutPaymentMethod_DefaultsToCard()
+    {
+        var order = Order.Place(Guid.NewGuid(), CreateTestAddress(), new[] { CreateLineItem(Guid.NewGuid()) });
+
+        Assert.Equal(PaymentMethod.Card, order.PaymentMethod);
+    }
+
+    [Fact]
+    public void Place_WithPayOnDelivery_StoresPaymentMethod()
+    {
+        var order = Order.Place(Guid.NewGuid(), CreateTestAddress(), new[] { CreateLineItem(Guid.NewGuid()) }, PaymentMethod.PayOnDelivery);
+
+        Assert.Equal(PaymentMethod.PayOnDelivery, order.PaymentMethod);
+        Assert.False(order.IsPaid);
+    }
 }

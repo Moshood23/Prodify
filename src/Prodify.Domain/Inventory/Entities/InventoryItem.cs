@@ -61,7 +61,7 @@ public class InventoryItem : AuditableEntity
         _movements.Add(StockMovement.Create(Id, movementType, Math.Abs(quantity), reason));
     }
 
-    public StockReservation Reserve(int quantity, TimeSpan expiryDuration)
+    public StockReservation Reserve(int quantity, TimeSpan expiryDuration, Guid? orderId = null)
     {
         if (quantity <= 0)
             throw new ArgumentException("Reservation quantity must be greater than zero.", nameof(quantity));
@@ -70,7 +70,7 @@ public class InventoryItem : AuditableEntity
             throw new InvalidOperationException(
                 $"Cannot reserve {quantity} units. Only {AvailableQuantity} available.");
 
-        var reservation = StockReservation.Create(Id, quantity, expiryDuration);
+        var reservation = StockReservation.Create(Id, quantity, expiryDuration, orderId);
         _reservations.Add(reservation);
 
         _movements.Add(StockMovement.Create(Id, StockMovementType.Reserved, quantity));
@@ -97,6 +97,18 @@ public class InventoryItem : AuditableEntity
         reservation.Release();
 
         _movements.Add(StockMovement.Create(Id, StockMovementType.Released, reservation.Quantity));
+        AddDomainEvent(new StockReleasedEvent(Id, reservation.Id, reservation.Quantity));
+    }
+
+    public void ReturnConfirmedReservation(Guid reservationId, string? reason = null)
+    {
+        var reservation = _reservations.FirstOrDefault(r => r.Id == reservationId)
+            ?? throw new InvalidOperationException($"Reservation '{reservationId}' not found.");
+
+        reservation.ReturnToStock();
+        QuantityOnHand += reservation.Quantity;
+
+        _movements.Add(StockMovement.Create(Id, StockMovementType.Inbound, reservation.Quantity, reason));
         AddDomainEvent(new StockReleasedEvent(Id, reservation.Id, reservation.Quantity));
     }
 

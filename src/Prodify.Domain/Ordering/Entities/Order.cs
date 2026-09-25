@@ -15,6 +15,12 @@ public enum OrderStatus
     Cancelled
 }
 
+public enum PaymentMethod
+{
+    Card,
+    PayOnDelivery
+}
+
 public class Order : AuditableEntity
 {
     private readonly List<SellerOrder> _sellerOrders = new();
@@ -24,6 +30,7 @@ public class Order : AuditableEntity
     public Guid CustomerId { get; private set; }
     public OrderAddress ShippingAddress { get; private set; } = null!;
     public bool IsPaid { get; private set; }
+    public PaymentMethod PaymentMethod { get; private set; }
 
     public ICollection<SellerOrder> SellerOrders => _sellerOrders;
     public ICollection<OrderItem> Items => _items;
@@ -37,17 +44,22 @@ public class Order : AuditableEntity
     {
     }
 
-    private Order(Guid id, Guid customerId, OrderAddress shippingAddress) : base(id)
+    private Order(Guid id, Guid customerId, OrderAddress shippingAddress, PaymentMethod paymentMethod) : base(id)
     {
         OrderNumber = OrderNumber.Generate();
         CustomerId = customerId;
         ShippingAddress = shippingAddress;
+        PaymentMethod = paymentMethod;
         IsPaid = false;
     }
 
-    public static Order Place(Guid customerId, OrderAddress shippingAddress, IEnumerable<(Guid SellerId, Guid ProductVariantId, string ProductName, int Quantity, Money UnitPrice)> lineItems)
+    public static Order Place(
+        Guid customerId,
+        OrderAddress shippingAddress,
+        IEnumerable<(Guid SellerId, Guid ProductVariantId, string ProductName, int Quantity, Money UnitPrice)> lineItems,
+        PaymentMethod paymentMethod = PaymentMethod.Card)
     {
-        var order = new Order(Guid.NewGuid(), customerId, shippingAddress);
+        var order = new Order(Guid.NewGuid(), customerId, shippingAddress, paymentMethod);
 
         var groupedBySeller = lineItems.GroupBy(li => li.SellerId);
 

@@ -13,6 +13,9 @@ public enum ReservationStatus
 public class StockReservation : Entity
 {
     public Guid InventoryItemId { get; private set; }
+
+    // The order this stock is held for (null for reservations made outside checkout).
+    public Guid? OrderId { get; private set; }
     public int Quantity { get; private set; }
     public ReservationStatus Status { get; private set; }
     public DateTime ReservedAt { get; private set; }
@@ -26,21 +29,23 @@ public class StockReservation : Entity
         Guid id,
         Guid inventoryItemId,
         int quantity,
-        DateTime expiresAt) : base(id)
+        DateTime expiresAt,
+        Guid? orderId = null) : base(id)
     {
         InventoryItemId = inventoryItemId;
+        OrderId = orderId;
         Quantity = quantity;
         Status = ReservationStatus.Active;
         ReservedAt = DateTime.UtcNow;
         ExpiresAt = expiresAt;
     }
 
-    internal static StockReservation Create(Guid inventoryItemId, int quantity, TimeSpan expiryDuration)
+    internal static StockReservation Create(Guid inventoryItemId, int quantity, TimeSpan expiryDuration, Guid? orderId = null)
     {
         if (quantity <= 0)
             throw new ArgumentException("Reservation quantity must be greater than zero.", nameof(quantity));
 
-        return new StockReservation(Guid.NewGuid(), inventoryItemId, quantity, DateTime.UtcNow.Add(expiryDuration));
+        return new StockReservation(Guid.NewGuid(), inventoryItemId, quantity, DateTime.UtcNow.Add(expiryDuration), orderId);
     }
 
     internal void Confirm()
@@ -55,6 +60,15 @@ public class StockReservation : Entity
     {
         if (Status != ReservationStatus.Active)
             throw new InvalidOperationException($"Cannot release a reservation with status '{Status}'.");
+
+        Status = ReservationStatus.Released;
+    }
+
+    // A confirmed reservation whose order was cancelled before shipping: the units go back on the shelf.
+    internal void ReturnToStock()
+    {
+        if (Status != ReservationStatus.Confirmed)
+            throw new InvalidOperationException($"Cannot return a reservation with status '{Status}' to stock.");
 
         Status = ReservationStatus.Released;
     }

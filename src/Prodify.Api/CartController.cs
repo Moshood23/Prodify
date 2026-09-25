@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Cart.Commands.AddToCart;
 using Prodify.Application.Cart.Commands.RemoveCartItem;
+using Prodify.Application.Cart.Commands.UpdateCartItemQuantity;
 using Prodify.Application.Cart.Queries.GetCart;
 using Prodify.Application.Common.Security;
 
@@ -34,6 +35,13 @@ public class CartController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPut("items/{cartItemId:guid}")]
+    public async Task<IActionResult> UpdateItemQuantity(Guid cartItemId, UpdateCartItemQuantityRequest request, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new UpdateCartItemQuantityCommand { CartItemId = cartItemId, Quantity = request.Quantity }, cancellationToken);
+        return NoContent();
+    }
+
     [HttpDelete("items/{cartItemId:guid}")]
     public async Task<IActionResult> RemoveItem(Guid cartItemId, CancellationToken cancellationToken)
     {
@@ -41,3 +49,5 @@ public class CartController : ControllerBase
         return NoContent();
     }
 }
+
+public record UpdateCartItemQuantityRequest(int Quantity);

@@ -12,4 +12,7 @@ public class PlaceOrderCommand : IRequest<Guid>
     public string? PostalCode { get; set; }
     public string Country { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;
+
+    // "Card" (pay online now) or "PayOnDelivery".
+    public string PaymentMethod { get; set; } = "Card";
 }

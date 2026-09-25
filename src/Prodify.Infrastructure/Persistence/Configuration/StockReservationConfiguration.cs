@@ -14,8 +14,10 @@ public class StockReservationConfiguration : IEntityTypeConfiguration<StockReser
 
         builder.Property(r => r.Id).ValueGeneratedNever();
 
-        builder.Property(r => r.InventoryItemId)
-            .IsRequired();
+        builder.Property(r => r.OrderId);
+
+        builder.HasIndex(r => r.InventoryItemId);
+        builder.HasIndex(r => r.OrderId);
 
         builder.Property(r => r.Quantity)
             .IsRequired();

@@ -80,4 +80,38 @@ public class InventoryItemTests
         Assert.Equal(70, item.QuantityReserved);
         Assert.Equal(30, item.AvailableQuantity);
     }
+
+    [Fact]
+    public void Reserve_WithOrderId_LinksReservationToOrder()
+    {
+        var orderId = Guid.NewGuid();
+        var item = InventoryItem.Create(Guid.NewGuid(), Guid.NewGuid(), 10);
+
+        var reservation = item.Reserve(2, TimeSpan.FromMinutes(30), orderId);
+
+        Assert.Equal(orderId, reservation.OrderId);
+    }
+
+    [Fact]
+    public void ReturnConfirmedReservation_PutsUnitsBackOnHand()
+    {
+        var item = InventoryItem.Create(Guid.NewGuid(), Guid.NewGuid(), 10);
+        var reservation = item.Reserve(3, TimeSpan.FromMinutes(30));
+        item.ConfirmReservation(reservation.Id);
+
+        item.ReturnConfirmedReservation(reservation.Id, "Order cancelled");
+
+        Assert.Equal(10, item.QuantityOnHand);
+        Assert.Equal(10, item.AvailableQuantity);
+        Assert.Equal(ReservationStatus.Released, reservation.Status);
+    }
+
+    [Fact]
+    public void ReturnConfirmedReservation_WhenStillActive_Throws()
+    {
+        var item = InventoryItem.Create(Guid.NewGuid(), Guid.NewGuid(), 10);
+        var reservation = item.Reserve(3, TimeSpan.FromMinutes(30));
+
+        Assert.Throws<InvalidOperationException>(() => item.ReturnConfirmedReservation(reservation.Id));
+    }
 }
