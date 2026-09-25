@@ -24,6 +24,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
         return new AuthResultDto
         {
             Token = result.Token!,
+            RefreshToken = result.RefreshToken!,
             UserId = result.UserId!.Value
         };
     }
