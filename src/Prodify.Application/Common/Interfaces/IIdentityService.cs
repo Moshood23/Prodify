@@ -18,6 +18,9 @@ public interface IIdentityService
     // Exchanges a valid refresh token for a new access token + refresh token (the old one is revoked).
     Task<IdentityResult> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default);
 
+    // Changes the password, logs the user out everywhere else and returns fresh tokens for this session.
+    Task<IdentityResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default);
+
     // Revokes a refresh token that belongs to the given user (logout).
     Task RevokeRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default);
 }

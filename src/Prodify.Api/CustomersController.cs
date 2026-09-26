@@ -4,7 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
 using Prodify.Application.Customers.Commands.AddCustomerAddress;
+using Prodify.Application.Customers.Commands.DeleteCustomerAddress;
 using Prodify.Application.Customers.Commands.RegisterCustomer;
+using Prodify.Application.Customers.Commands.SetDefaultCustomerAddress;
+using Prodify.Application.Customers.Commands.UpdateCustomerAddress;
+using Prodify.Application.Customers.Commands.UpdateMyProfile;
 using Prodify.Application.Customers.Queries.GetCustomer;
 
 namespace Prodify.Api.Controllers;
@@ -41,11 +45,44 @@ public class CustomersController : ControllerBase
     }
 
     [Authorize(Roles = Roles.Customer)]
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMe(UpdateMyProfileCommand command, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    [Authorize(Roles = Roles.Customer)]
     [HttpPost("me/addresses")]
     public async Task<IActionResult> AddAddress(AddCustomerAddressCommand command, CancellationToken cancellationToken)
     {
         var addressId = await _mediator.Send(command, cancellationToken);
         return Ok(addressId);
+    }
+
+    [Authorize(Roles = Roles.Customer)]
+    [HttpPut("me/addresses/{addressId:guid}")]
+    public async Task<IActionResult> UpdateAddress(Guid addressId, UpdateCustomerAddressCommand command, CancellationToken cancellationToken)
+    {
+        command.AddressId = addressId;
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    [Authorize(Roles = Roles.Customer)]
+    [HttpDelete("me/addresses/{addressId:guid}")]
+    public async Task<IActionResult> DeleteAddress(Guid addressId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new DeleteCustomerAddressCommand { AddressId = addressId }, cancellationToken);
+        return NoContent();
+    }
+
+    [Authorize(Roles = Roles.Customer)]
+    [HttpPost("me/addresses/{addressId:guid}/default")]
+    public async Task<IActionResult> SetDefaultAddress(Guid addressId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new SetDefaultCustomerAddressCommand { AddressId = addressId }, cancellationToken);
+        return NoContent();
     }
 
     [Authorize(Roles = Roles.Admin)]

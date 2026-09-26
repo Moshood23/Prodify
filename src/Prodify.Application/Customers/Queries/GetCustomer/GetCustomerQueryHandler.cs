@@ -32,20 +32,25 @@ public class GetCustomerQueryHandler : IRequestHandler<GetCustomerQuery, Custome
                 Email = c.Email,
                 PhoneNumber = c.PhoneNumber,
                 IsActive = c.IsActive,
-                Addresses = c.Addresses.Select(a => new CustomerAddressDto
-                {
-                    Id = a.Id,
-                    Label = a.Label,
-                    RecipientName = a.RecipientName,
-                    AddressLine1 = a.AddressLine1,
-                    AddressLine2 = a.AddressLine2,
-                    City = a.City,
-                    State = a.State,
-                    PostalCode = a.PostalCode,
-                    Country = a.Country,
-                    PhoneNumber = a.PhoneNumber,
-                    IsDefault = a.IsDefault
-                }).ToList()
+                // Default address first.
+                Addresses = c.Addresses
+                    .OrderByDescending(a => a.IsDefault)
+                    .ThenBy(a => a.Label)
+                    .Select(a => new CustomerAddressDto
+                    {
+                        Id = a.Id,
+                        Label = a.Label,
+                        RecipientName = a.RecipientName,
+                        AddressLine1 = a.AddressLine1,
+                        AddressLine2 = a.AddressLine2,
+                        City = a.City,
+                        State = a.State,
+                        PostalCode = a.PostalCode,
+                        Country = a.Country,
+                        PhoneNumber = a.PhoneNumber,
+                        IsDefault = a.IsDefault
+                    })
+                    .ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
 

@@ -60,6 +60,54 @@ public class CustomerAddress : Entity
         string? postalCode = null,
         bool isDefault = false)
     {
+        EnsureValid(label, recipientName, addressLine1, city, state, country, phoneNumber);
+
+        return new CustomerAddress(
+            Guid.NewGuid(),
+            customerId,
+            label.Trim(),
+            recipientName.Trim(),
+            addressLine1.Trim(),
+            addressLine2?.Trim(),
+            city.Trim(),
+            state.Trim(),
+            postalCode?.Trim(),
+            country.Trim(),
+            phoneNumber.Trim(),
+            isDefault);
+    }
+
+    internal void Update(
+        string label,
+        string recipientName,
+        string addressLine1,
+        string? addressLine2,
+        string city,
+        string state,
+        string? postalCode,
+        string country,
+        string phoneNumber)
+    {
+        EnsureValid(label, recipientName, addressLine1, city, state, country, phoneNumber);
+
+        Label = label.Trim();
+        RecipientName = recipientName.Trim();
+        AddressLine1 = addressLine1.Trim();
+        AddressLine2 = string.IsNullOrWhiteSpace(addressLine2) ? null : addressLine2.Trim();
+        City = city.Trim();
+        State = state.Trim();
+        PostalCode = string.IsNullOrWhiteSpace(postalCode) ? null : postalCode.Trim();
+        Country = country.Trim();
+        PhoneNumber = phoneNumber.Trim();
+    }
+
+    internal void SetAsDefault() => IsDefault = true;
+
+    internal void UnsetAsDefault() => IsDefault = false;
+
+    private static void EnsureValid(
+        string label, string recipientName, string addressLine1, string city, string state, string country, string phoneNumber)
+    {
         if (string.IsNullOrWhiteSpace(label))
             throw new ArgumentException("Address label cannot be empty.", nameof(label));
 
@@ -80,23 +128,5 @@ public class CustomerAddress : Entity
 
         if (string.IsNullOrWhiteSpace(phoneNumber))
             throw new ArgumentException("Phone number cannot be empty.", nameof(phoneNumber));
-
-        return new CustomerAddress(
-            Guid.NewGuid(),
-            customerId,
-            label.Trim(),
-            recipientName.Trim(),
-            addressLine1.Trim(),
-            addressLine2?.Trim(),
-            city.Trim(),
-            state.Trim(),
-            postalCode?.Trim(),
-            country.Trim(),
-            phoneNumber.Trim(),
-            isDefault);
     }
-
-    internal void SetAsDefault() => IsDefault = true;
-
-    internal void UnsetAsDefault() => IsDefault = false;
 }

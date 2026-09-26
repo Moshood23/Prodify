@@ -105,9 +105,9 @@ public class IdentityService : IIdentityService
 
         if (stored.RevokedAt is not null)
         {
-            // A revoked token being used again means it was probably stolen:
-            // log the user out everywhere by revoking all of their active tokens.
-            await RevokeAllForUserAsync(stored.UserId, cancellationToken);
+            if (stored.ReplacedByTokenHash is not null)
+                await RevokeAllForUserAsync(stored.UserId, cancellationToken);
+
             return Failure("Invalid refresh token.");
         }
 
@@ -125,6 +125,26 @@ public class IdentityService : IIdentityService
 
         return await IssueTokensAsync(user, cancellationToken, newToken, newHash);
     }
+
+    public async Task<Application.Common.Interfaces.IdentityResult> ChangePasswordAsync(
+    Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user is null)
+            return Failure("User not found.");
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+        if (!result.Succeeded)
+            return Failure(result.Errors.Select(e => e.Code == "PasswordMismatch" ? "Your current password is incorrect." : e.Description));
+
+        // Someone who knew the old password may still be logged in elsewhere: end those sessions.
+        await RevokeAllForUserAsync(user.Id, cancellationToken);
+
+        return await IssueTokensAsync(user, cancellationToken);
+    }
+
 
     public async Task RevokeRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default)
     {
