@@ -80,6 +80,24 @@ public class Customer : AuditableEntity
         return address;
     }
 
+    public void UpdateAddress(
+        Guid addressId,
+        string label,
+        string recipientName,
+        string addressLine1,
+        string? addressLine2,
+        string city,
+        string state,
+        string? postalCode,
+        string country,
+        string phoneNumber)
+    {
+        var address = _addresses.FirstOrDefault(a => a.Id == addressId)
+            ?? throw new InvalidOperationException($"Address '{addressId}' not found.");
+
+        address.Update(label, recipientName, addressLine1, addressLine2, city, state, postalCode, country, phoneNumber);
+    }
+
     public void SetDefaultAddress(Guid addressId)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
@@ -95,8 +113,14 @@ public class Customer : AuditableEntity
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
 
-        if (address is not null)
-            _addresses.Remove(address);
+        if (address is null)
+            return;
+
+        _addresses.Remove(address);
+
+        // Always keep a default address while there is at least one.
+        if (address.IsDefault && _addresses.Count > 0)
+            _addresses.First().SetAsDefault();
     }
 
     public void Deactivate() => IsActive = false;

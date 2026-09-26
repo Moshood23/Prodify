@@ -5,6 +5,7 @@ using Prodify.Application.Identity.Commands.Login;
 using Prodify.Application.Identity.Commands.Logout;
 using Prodify.Application.Identity.Commands.RefreshToken;
 using Prodify.Application.Identity.Commands.Register;
+using Prodify.Application.Identity.Commands.ChangePassword;
 
 namespace Prodify.Api.Controllers;
 
@@ -44,6 +45,16 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    // Returns new tokens; the user's other sessions are logged out.
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
 
     [Authorize]
     [HttpPost("logout")]
