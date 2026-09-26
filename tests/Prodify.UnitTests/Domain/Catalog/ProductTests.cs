@@ -46,4 +46,18 @@ public class ProductTests
 
         Assert.Single(product.Images);
     }
+
+    [Fact]
+    public void ReplaceAttributes_ReplacesTheWholeList()
+    {
+        var product = Product.Create("Phone", null, Guid.NewGuid(), Guid.NewGuid());
+        product.AddAttribute("Battery", "4000mAh");
+        product.AddAttribute("Colour", "Black");
+
+        product.ReplaceAttributes(new[] { ("Battery", "5000mAh"), ("Display", "6.5 inches") });
+
+        Assert.Equal(2, product.Attributes.Count);
+        Assert.Contains(product.Attributes, a => a.Name == "Battery" && a.Value == "5000mAh");
+        Assert.DoesNotContain(product.Attributes, a => a.Name == "Colour");
+    }
 }

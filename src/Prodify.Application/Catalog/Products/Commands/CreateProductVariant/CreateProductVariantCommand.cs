@@ -10,4 +10,7 @@ public class CreateProductVariantCommand : IRequest<Guid>
     public string? Name { get; set; }
     public decimal? CompareAtPrice { get; set; }
     public decimal Weight { get; set; }
+
+    // Units ready to sell, kept in Prodify's warehouse.
+    public int InitialStock { get; set; }
 }

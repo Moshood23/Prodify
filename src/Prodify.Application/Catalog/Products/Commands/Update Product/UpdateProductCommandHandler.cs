@@ -1,9 +1,6 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Prodify.Application.Common.Exceptions;
+using Prodify.Application.Catalog.Products.Common;
 using Prodify.Application.Common.Interfaces;
-using Prodify.Application.Common.Security;
-using Prodify.Domain.Catalog.Entities;
 
 namespace Prodify.Application.Catalog.Products.Commands.UpdateProduct;
 
@@ -20,12 +17,10 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand>
 
     public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = await _context.Products
-            .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
-
         // Sellers can only edit their own products; someone else's product is "not found".
-        if (product is null || !_currentUser.CanManageSeller(product.SellerId))
-            throw new NotFoundException("Product", request.Id);
+        var product = await _context.Products.GetManagedAsync(_currentUser, request.Id, cancellationToken);
+
+        await _context.EnsureCategoryAndBrandExistAsync(request.CategoryId, request.BrandId, cancellationToken);
 
         product.Update(request.Name, request.Description, request.CategoryId, request.BrandId);
     }

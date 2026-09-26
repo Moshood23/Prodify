@@ -1,9 +1,8 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Prodify.Application.Common.Exceptions;
+using Prodify.Application.Catalog.Products.Common;
 using Prodify.Application.Common.Interfaces;
-using Prodify.Application.Common.Security;
 using Prodify.Domain.Catalog.Entities;
+using Prodify.Domain.Inventory.Entities;
 
 namespace Prodify.Application.Catalog.Products.Commands.CreateProductVariant;
 
@@ -20,11 +19,11 @@ public class CreateProductVariantCommandHandler : IRequestHandler<CreateProductV
 
     public async Task<Guid> Handle(CreateProductVariantCommand request, CancellationToken cancellationToken)
     {
-        var product = await _context.Products
-            .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken);
+        await _context.Products.GetManagedAsync(_currentUser, request.ProductId, cancellationToken);
 
-        if (product is null || !_currentUser.CanManageSeller(product.SellerId))
-            throw new NotFoundException("Product", request.ProductId);
+        await _context.EnsureSkuIsFreeAsync(request.Sku, cancellationToken);
+
+        var warehouseId = await _context.GetDefaultWarehouseIdAsync(cancellationToken);
 
         var variant = ProductVariant.Create(
             request.ProductId,
@@ -36,7 +35,8 @@ public class CreateProductVariantCommandHandler : IRequestHandler<CreateProductV
 
         _context.Add(variant);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        // Every variant gets a stock record, even with 0 units, so stock can be updated later.
+        _context.Add(InventoryItem.Create(variant.Id, warehouseId, request.InitialStock));
 
         return variant.Id;
     }
