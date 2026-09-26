@@ -114,4 +114,48 @@ public class InventoryItemTests
 
         Assert.Throws<InvalidOperationException>(() => item.ReturnConfirmedReservation(reservation.Id));
     }
+
+    [Fact]
+    public void SetAvailableQuantity_KeepsReservedUnitsOnHand()
+    {
+        var item = InventoryItem.Create(Guid.NewGuid(), Guid.NewGuid(), 10);
+        item.Reserve(3, TimeSpan.FromMinutes(15));
+
+        item.SetAvailableQuantity(20, "Restock");
+
+        Assert.Equal(20, item.AvailableQuantity);
+        Assert.Equal(23, item.QuantityOnHand);
+        Assert.Equal(3, item.QuantityReserved);
+    }
+
+    [Fact]
+    public void SetAvailableQuantity_ToZero_LeavesOnlyReservedUnits()
+    {
+        var item = InventoryItem.Create(Guid.NewGuid(), Guid.NewGuid(), 10);
+        item.Reserve(4, TimeSpan.FromMinutes(15));
+
+        item.SetAvailableQuantity(0);
+
+        Assert.Equal(0, item.AvailableQuantity);
+        Assert.Equal(4, item.QuantityOnHand);
+    }
+
+    [Fact]
+    public void SetAvailableQuantity_Unchanged_RecordsNoMovement()
+    {
+        var item = InventoryItem.Create(Guid.NewGuid(), Guid.NewGuid(), 10);
+        var movements = item.Movements.Count;
+
+        item.SetAvailableQuantity(10);
+
+        Assert.Equal(movements, item.Movements.Count);
+    }
+
+    [Fact]
+    public void SetAvailableQuantity_Negative_Throws()
+    {
+        var item = InventoryItem.Create(Guid.NewGuid(), Guid.NewGuid(), 10);
+
+        Assert.Throws<ArgumentException>(() => item.SetAvailableQuantity(-1));
+    }
 }

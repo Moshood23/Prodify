@@ -61,6 +61,20 @@ public class InventoryItem : AuditableEntity
         _movements.Add(StockMovement.Create(Id, movementType, Math.Abs(quantity), reason));
     }
 
+    // Sets how many units can still be sold. Units already reserved by open orders stay
+    // on hand for those orders, so the stock on hand becomes available + reserved.
+    public void SetAvailableQuantity(int availableQuantity, string? reason = null)
+    {
+        if (availableQuantity < 0)
+            throw new ArgumentException("Available quantity cannot be negative.", nameof(availableQuantity));
+
+        var change = availableQuantity + QuantityReserved - QuantityOnHand;
+
+        if (change != 0)
+            AdjustStock(change, reason);
+    }
+
+
     public StockReservation Reserve(int quantity, TimeSpan expiryDuration, Guid? orderId = null)
     {
         if (quantity <= 0)

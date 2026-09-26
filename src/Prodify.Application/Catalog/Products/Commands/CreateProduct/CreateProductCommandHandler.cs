@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Catalog.Products.Common;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
@@ -31,6 +32,8 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
         if (seller.Status != SellerStatus.Approved)
             throw new BusinessRuleException("The seller account must be approved before products can be listed.");
+
+        await _context.EnsureCategoryAndBrandExistAsync(request.CategoryId, request.BrandId, cancellationToken);
 
         var product = Product.Create(
             request.Name,

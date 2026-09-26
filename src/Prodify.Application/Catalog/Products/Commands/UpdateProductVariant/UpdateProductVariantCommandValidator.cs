@@ -1,20 +1,17 @@
 ﻿using FluentValidation;
 using Prodify.Application.Catalog.Products.Common;
 
-namespace Prodify.Application.Catalog.Products.Commands.CreateProductVariant;
+namespace Prodify.Application.Catalog.Products.Commands.UpdateProductVariant;
 
-public class CreateProductVariantCommandValidator : AbstractValidator<CreateProductVariantCommand>
+public class UpdateProductVariantCommandValidator : AbstractValidator<UpdateProductVariantCommand>
 {
-    public CreateProductVariantCommandValidator()
+    public UpdateProductVariantCommandValidator()
     {
         RuleFor(x => x.ProductId)
             .NotEmpty();
 
-        RuleFor(x => x.Sku)
-            .NotEmpty()
-            .MaximumLength(64)
-            .Matches(VariantRules.SkuPattern)
-            .WithMessage(VariantRules.SkuMessage);
+        RuleFor(x => x.VariantId)
+            .NotEmpty();
 
         RuleFor(x => x.Name)
             .MaximumLength(200);
@@ -29,8 +26,5 @@ public class CreateProductVariantCommandValidator : AbstractValidator<CreateProd
 
         RuleFor(x => x.Weight)
             .InclusiveBetween(0, VariantRules.MaxWeightKg);
-
-        RuleFor(x => x.InitialStock)
-            .InclusiveBetween(0, VariantRules.MaxStock);
     }
 }

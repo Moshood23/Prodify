@@ -90,6 +90,15 @@ public class Product : AuditableEntity
         return attribute;
     }
 
+    // Replaces the whole list of specifications (e.g. "Battery: 5000mAh").
+    public void ReplaceAttributes(IEnumerable<(string Name, string Value)> attributes)
+    {
+        _attributes.Clear();
+
+        foreach (var (name, value) in attributes)
+            AddAttribute(name, value);
+    }
+
     public void RemoveAttribute(Guid attributeId)
     {
         var attribute = _attributes.FirstOrDefault(a => a.Id == attributeId);
