@@ -17,6 +17,8 @@ public class ManagedProductSummaryDto
     public string Name { get; set; } = null!;
     public string CategoryName { get; set; } = null!;
     public string? BrandName { get; set; }
+    public Guid SellerId { get; set; }
+    public string SellerName { get; set; } = null!;
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
     public int ActiveVariantCount { get; set; }
