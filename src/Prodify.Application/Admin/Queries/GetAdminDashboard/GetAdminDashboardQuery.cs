@@ -18,9 +18,10 @@ public class AdminDashboardDto
 
     public int TotalOrders { get; set; }
     public int OrdersToday { get; set; }
-
-    // Money actually received (paid orders).
     public decimal PaidSales { get; set; }
+    public decimal PaidSalesLast7Days { get; set; }
+    public int SellerOrdersToFulfil { get; set; }
+    public int OrdersAwaitingPayment { get; set; }
 
     public List<RecentOrderDto> RecentOrders { get; set; } = new();
 }

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Prodify.Application.Catalog.Common;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Domain.Catalog.Entities;
 
@@ -15,10 +16,11 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
 
     public async Task<Guid> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = Category.Create(request.Name, request.Description, request.ParentCategoryId);
+        await _context.EnsureValidCategoryAsync(null, request.Name, request.ParentCategoryId, cancellationToken);
+
+        var category = Category.Create(request.Name, request.Description?.Trim(), request.ParentCategoryId);
 
         _context.Add(category);
-
 
         return category.Id;
     }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Models;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Ordering.Common;
 
 namespace Prodify.Application.Ordering.Queries.ListMyOrders;
 
@@ -33,40 +34,7 @@ public class ListMyOrdersQueryHandler : IRequestHandler<ListMyOrdersQuery, Pagin
             .Include(o => o.SellerOrders)
             .ToListAsync(cancellationToken);
 
-        var firstVariantIds = orders
-            .Select(o => o.Items.FirstOrDefault()?.ProductVariantId)
-            .OfType<Guid>()
-            .Distinct()
-            .ToList();
-
-        var images = await _context.ProductVariants
-            .Where(v => firstVariantIds.Contains(v.Id))
-            .Join(_context.Products, v => v.ProductId, p => p.Id, (v, p) => new
-            {
-                VariantId = v.Id,
-                ImageUrl = p.Images.OrderBy(i => i.DisplayOrder).Select(i => i.Url).FirstOrDefault()
-            })
-            .ToDictionaryAsync(x => x.VariantId, x => x.ImageUrl, cancellationToken);
-
-        var items = orders.Select(o =>
-        {
-            var first = o.Items.FirstOrDefault();
-            var others = o.Items.Count - 1;
-
-            return new OrderSummaryDto
-            {
-                Id = o.Id,
-                OrderNumber = o.OrderNumber.Value,
-                CreatedAt = o.CreatedAt,
-                Status = o.Status.ToString(),
-                IsPaid = o.IsPaid,
-                PaymentMethod = o.PaymentMethod.ToString(),
-                Total = o.Total.Amount,
-                ItemCount = o.Items.Sum(i => i.Quantity),
-                Summary = first is null ? "" : others > 0 ? $"{first.ProductName} and {others} more" : first.ProductName,
-                ImageUrl = first is null ? null : images.GetValueOrDefault(first.ProductVariantId)
-            };
-        }).ToList();
+        var items = await _context.ToSummariesAsync(orders, cancellationToken);
 
         return new PaginatedList<OrderSummaryDto>(items, totalCount, request.PageNumber, request.PageSize);
     }
