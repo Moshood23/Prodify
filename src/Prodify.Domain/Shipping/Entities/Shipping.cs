@@ -56,7 +56,8 @@ public class Shipment : AuditableEntity
         return shipment;
     }
 
-    public void Ship(string carrier, string trackingNumber)
+    // The tracking number is optional: a seller's own dispatch rider has none.
+    public void Ship(string carrier, string? trackingNumber)
     {
         if (Status != ShipmentStatus.Pending)
             throw new InvalidOperationException($"Cannot ship a shipment with status '{Status}'.");
@@ -64,11 +65,8 @@ public class Shipment : AuditableEntity
         if (string.IsNullOrWhiteSpace(carrier))
             throw new ArgumentException("Carrier cannot be empty.", nameof(carrier));
 
-        if (string.IsNullOrWhiteSpace(trackingNumber))
-            throw new ArgumentException("Tracking number cannot be empty.", nameof(trackingNumber));
-
-        Carrier = carrier;
-        TrackingNumber = trackingNumber;
+        Carrier = carrier.Trim();
+        TrackingNumber = string.IsNullOrWhiteSpace(trackingNumber) ? null : trackingNumber.Trim();
         Status = ShipmentStatus.Shipped;
         ShippedAt = DateTime.UtcNow;
 
