@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Sellers.Entities;
 
 namespace Prodify.Application.Admin.Queries.GetAdminDashboard;
@@ -24,6 +25,7 @@ public class GetAdminDashboardQueryHandler : IRequestHandler<GetAdminDashboardQu
             .ToDictionaryAsync(x => x.Status, x => x.Count, cancellationToken);
 
         var startOfToday = DateTime.UtcNow.Date;
+        var startOfWeek = startOfToday.AddDays(-6);
 
         // Status and total are calculated from the order's items and seller orders.
         var recentOrders = await _context.Orders
@@ -52,6 +54,17 @@ public class GetAdminDashboardQueryHandler : IRequestHandler<GetAdminDashboardQu
                 .Where(o => o.IsPaid)
                 .SelectMany(o => o.Items)
                 .SumAsync(i => (decimal?)(i.UnitPrice.Amount * i.Quantity), cancellationToken) ?? 0,
+            PaidSalesLast7Days = await _context.Orders
+                .Where(o => o.IsPaid && o.CreatedAt >= startOfWeek)
+                .SelectMany(o => o.Items)
+                .SumAsync(i => (decimal?)(i.UnitPrice.Amount * i.Quantity), cancellationToken) ?? 0,
+            SellerOrdersToFulfil = await _context.SellerOrders
+                .Where(so => so.Status == SellerOrderStatus.Pending || so.Status == SellerOrderStatus.Confirmed || so.Status == SellerOrderStatus.Packed)
+                .Join(_context.Orders, so => so.OrderId, o => o.Id, (so, o) => o)
+                .CountAsync(o => o.PaymentMethod == PaymentMethod.PayOnDelivery || o.IsPaid, cancellationToken),
+            OrdersAwaitingPayment = await _context.Orders
+                .CountAsync(o => o.PaymentMethod == PaymentMethod.Card && !o.IsPaid
+                    && o.SellerOrders.Any(so => so.Status != SellerOrderStatus.Cancelled), cancellationToken),
             RecentOrders = recentOrders.Select(o => new RecentOrderDto
             {
                 Id = o.Id,

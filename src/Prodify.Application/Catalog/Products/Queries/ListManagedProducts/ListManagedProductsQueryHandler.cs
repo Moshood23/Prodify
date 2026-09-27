@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Catalog.Products.Common;
 using Prodify.Application.Catalog.Products.DTOs;
-using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Models;
 using Prodify.Application.Common.Security;
@@ -23,11 +22,13 @@ public class ListManagedProductsQueryHandler : IRequestHandler<ListManagedProduc
 
     public async Task<PaginatedList<ManagedProductSummaryDto>> Handle(ListManagedProductsQuery request, CancellationToken cancellationToken)
     {
-        var sellerId = _currentUser.IsAdmin()
-            ? request.SellerId ?? throw new BusinessRuleException("Choose a seller to see their products.")
-            : _currentUser.GetRequiredSellerId();
 
-        var products = _context.Products.Where(p => p.SellerId == sellerId);
+        var sellerId = _currentUser.IsAdmin() ? request.SellerId : _currentUser.GetRequiredSellerId();
+
+        var products = _context.Products.AsQueryable();
+
+        if (sellerId.HasValue)
+            products = products.Where(p => p.SellerId == sellerId.Value);
 
         // Matches part of the product name, or a variant's exact SKU.
         if (!string.IsNullOrWhiteSpace(request.Search))
@@ -65,6 +66,11 @@ public class ListManagedProductsQueryHandler : IRequestHandler<ListManagedProduc
                     .Where(b => b.Id == p.BrandId)
                     .Select(b => b.Name)
                     .FirstOrDefault(),
+                SellerId = p.SellerId,
+                SellerName = _context.Sellers
+                    .Where(s => s.Id == p.SellerId)
+                    .Select(s => s.BusinessName)
+                    .FirstOrDefault() ?? "",
                 ImageUrl = p.Images
                     .OrderBy(i => i.DisplayOrder)
                     .Select(i => i.Url)

@@ -1,12 +1,15 @@
 ﻿using FluentValidation;
 using Prodify.Application.Catalog.Common;
 
-namespace Prodify.Application.Catalog.Brands.Commands.CreateBrand;
+namespace Prodify.Application.Catalog.Brands.Commands.UpdateBrand;
 
-public class CreateBrandCommandValidator : AbstractValidator<CreateBrandCommand>
+public class UpdateBrandCommandValidator : AbstractValidator<UpdateBrandCommand>
 {
-    public CreateBrandCommandValidator()
+    public UpdateBrandCommandValidator()
     {
+        RuleFor(x => x.Id)
+            .NotEmpty();
+
         RuleFor(x => x.Name)
             .NotEmpty()
             .MaximumLength(200);
