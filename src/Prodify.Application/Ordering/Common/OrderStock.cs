@@ -39,6 +39,26 @@ public static class OrderStock
         }
     }
 
+    // One seller cancels their part of an order: only their products' stock goes back.
+    public static async Task ReleaseSellerOrderStockAsync(
+        this IApplicationDbContext context, Guid orderId, IReadOnlyCollection<Guid> variantIds, CancellationToken cancellationToken)
+    {
+        foreach (var item in await LoadInventoryForOrderAsync(context, orderId, cancellationToken))
+        {
+            if (!variantIds.Contains(item.ProductVariantId))
+                continue;
+
+            foreach (var reservation in item.Reservations.Where(r => r.OrderId == orderId).ToList())
+            {
+                if (reservation.Status == ReservationStatus.Active)
+                    item.ReleaseReservation(reservation.Id);
+                else if (reservation.Status == ReservationStatus.Confirmed)
+                    item.ReturnConfirmedReservation(reservation.Id, "Cancelled by seller");
+            }
+        }
+    }
+
+
     private static Task<List<InventoryItem>> LoadInventoryForOrderAsync(
         IApplicationDbContext context, Guid orderId, CancellationToken cancellationToken) =>
         context.InventoryItems
