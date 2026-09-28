@@ -28,4 +28,6 @@ public class ProductImage : Entity
 
         return new ProductImage(Guid.NewGuid(), productId, url.Trim(), altText, displayOrder);
     }
+
+    internal void SetDisplayOrder(int displayOrder) => DisplayOrder = displayOrder;
 }

@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Uploaded product photos (local development storage)
+src/Prodify.Api/uploads/

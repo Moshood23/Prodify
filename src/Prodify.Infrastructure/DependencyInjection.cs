@@ -17,6 +17,7 @@ using Prodify.Infrastructure.Payments;
 using Prodify.Infrastructure.Persistence;
 using Prodify.Infrastructure.Persistence.Interceptors;
 using Prodify.Infrastructure.Persistence.Seed;
+using Prodify.Infrastructure.Storage;
 
 namespace Prodify.Infrastructure;
 
@@ -87,6 +88,8 @@ public static class DependencyInjection
         services.AddScoped<IPaymentService, SimulatedPaymentGateway>();
         services.AddScoped<INotificationService, LogNotificationService>();
         services.AddScoped<IIdentityService, IdentityService>();
+        services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
+        services.AddScoped<IFileStorage, LocalFileStorage>();
 
         services.AddHostedService<OutboxProcessorHostedService>();
         services.AddHostedService<ReservationExpirationService>();

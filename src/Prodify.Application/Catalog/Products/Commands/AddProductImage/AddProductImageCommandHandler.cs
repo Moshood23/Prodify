@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Catalog.Products.Common;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
@@ -8,8 +9,6 @@ namespace Prodify.Application.Catalog.Products.Commands.AddProductImage;
 
 public class AddProductImageCommandHandler : IRequestHandler<AddProductImageCommand, Guid>
 {
-    private const int MaxImagesPerProduct = 10;
-
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
 
@@ -28,8 +27,8 @@ public class AddProductImageCommandHandler : IRequestHandler<AddProductImageComm
         if (product is null || !_currentUser.CanManageSeller(product.SellerId))
             throw new NotFoundException("Product", request.ProductId);
 
-        if (product.Images.Count >= MaxImagesPerProduct)
-            throw new BusinessRuleException($"A product can have at most {MaxImagesPerProduct} images.");
+         if (product.Images.Count >= ProductImageRules.MaxImagesPerProduct)
+            throw new BusinessRuleException($"A product can have at most {ProductImageRules.MaxImagesPerProduct} photos.");
 
         var image = product.AddImage(request.Url, request.AltText);
 

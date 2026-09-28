@@ -10,11 +10,13 @@ public class RemoveProductImageCommandHandler : IRequestHandler<RemoveProductIma
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly IFileStorage _fileStorage;
 
-    public RemoveProductImageCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+    public RemoveProductImageCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, IFileStorage fileStorage)
     {
         _context = context;
         _currentUser = currentUser;
+        _fileStorage = fileStorage;
     }
 
     public async Task Handle(RemoveProductImageCommand request, CancellationToken cancellationToken)
@@ -26,9 +28,12 @@ public class RemoveProductImageCommandHandler : IRequestHandler<RemoveProductIma
         if (product is null || !_currentUser.CanManageSeller(product.SellerId))
             throw new NotFoundException("Product", request.ProductId);
 
-        if (product.Images.All(i => i.Id != request.ImageId))
-            throw new NotFoundException("ProductImage", request.ImageId);
+        var image = product.Images.FirstOrDefault(i => i.Id == request.ImageId)
+            ?? throw new NotFoundException("ProductImage", request.ImageId);
 
         product.RemoveImage(request.ImageId);
+
+        // Uploaded photos are deleted from storage too; pasted links are left alone.
+        await _fileStorage.DeleteAsync(image.Url, cancellationToken);
     }
 }

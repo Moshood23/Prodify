@@ -2,6 +2,9 @@
 using Prodify.Infrastructure.Persistence;
 using Prodify.Infrastructure;
 using Prodify.Infrastructure.Persistence.Seed;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
+using Prodify.Infrastructure.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +72,18 @@ app.UseMiddleware<Prodify.Api.Middleware.CorrelationIdMiddleware>();
 app.UseMiddleware<Prodify.Api.Middleware.ExceptionHandlingMiddleware>();
 
 app.UseCors("AllowFrontend");
+
+// Serves uploaded product photos, e.g. /uploads/products/abc.jpg.
+var fileStorage = app.Services.GetRequiredService<IOptions<FileStorageSettings>>().Value;
+var uploadsPath = LocalFileStorage.GetRootPath(fileStorage, app.Environment);
+Directory.CreateDirectory(uploadsPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = fileStorage.RequestPath,
+    // File names are random and never reused, so browsers can keep them.
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable"
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

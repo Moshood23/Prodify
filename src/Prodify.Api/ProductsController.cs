@@ -16,6 +16,9 @@ using Prodify.Application.Catalog.Products.Queries.GetProduct;
 using Prodify.Application.Catalog.Products.Queries.ListManagedProducts;
 using Prodify.Application.Catalog.Products.Queries.ListProducts;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Catalog.Products.Commands.ReorderProductImages;
+using Prodify.Application.Catalog.Products.Commands.UploadProductImage;
+using Prodify.Api.Models;
 
 namespace Prodify.Api.Controllers;
 
@@ -45,8 +48,6 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(new GetProductQuery { Id = id }, cancellationToken);
         return Ok(result);
     }
-
-    // ---- Seller Centre (sellers manage their own products; admins manage any) ----
 
     // Sellers get their own products; admins pass ?sellerId=.
     [Authorize(Roles = Roles.SellerOrAdmin)]
@@ -161,6 +162,34 @@ public class ProductsController : ControllerBase
         var id = await _mediator.Send(command, cancellationToken);
         return Ok(id);
     }
+
+    // A photo file from the seller's phone or computer (JPG, PNG or WebP, max 5 MB).
+    [Authorize(Roles = Roles.SellerOrAdmin)]
+    [HttpPost("{productId:guid}/images/upload")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    public async Task<IActionResult> UploadImage(Guid productId, [FromForm] UploadImageForm form, CancellationToken cancellationToken)
+    {
+        await using var content = form.File.OpenReadStream();
+        var id = await _mediator.Send(new UploadProductImageCommand
+        {
+            ProductId = productId,
+            Content = content,
+            Length = form.File.Length,
+            AltText = form.AltText
+        }, cancellationToken);
+        return Ok(id);
+    }
+
+    [Authorize(Roles = Roles.SellerOrAdmin)]
+    [HttpPut("{productId:guid}/images/order")]
+    public async Task<IActionResult> ReorderImages(Guid productId, ReorderProductImagesCommand command, CancellationToken cancellationToken)
+    {
+        command.ProductId = productId;
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
 
     [Authorize(Roles = Roles.SellerOrAdmin)]
     [HttpDelete("{productId:guid}/images/{imageId:guid}")]
