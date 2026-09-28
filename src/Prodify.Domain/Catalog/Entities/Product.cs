@@ -79,6 +79,18 @@ public class Product : AuditableEntity
             _images.Remove(image);
     }
 
+
+    // imageIds lists every photo of this product in the new order.
+    public void ReorderImages(IReadOnlyList<Guid> imageIds)
+    {
+        if (imageIds.Count != _images.Count || imageIds.Distinct().Count() != _images.Count
+            || _images.Any(i => !imageIds.Contains(i.Id)))
+            throw new InvalidOperationException("The new order must list every photo of this product once.");
+
+        for (var position = 0; position < imageIds.Count; position++)
+            _images.First(i => i.Id == imageIds[position]).SetDisplayOrder(position);
+    }
+
     public ProductAttribute AddAttribute(string name, string value)
     {
         if (_attributes.Any(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
