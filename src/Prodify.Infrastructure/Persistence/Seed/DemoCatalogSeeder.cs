@@ -40,8 +40,12 @@ public class DemoCatalogSeeder
 
         var sellerEmail = _settings.SellerEmail.Trim().ToLowerInvariant();
 
-        if (await _context.Sellers.AnyAsync(s => s.Email == sellerEmail))
+        var existingSeller = await _context.Sellers.FirstOrDefaultAsync(s => s.Email == sellerEmail);
+        if (existingSeller is not null)
+        {
+            await ReplacePlaceholderPhotosAsync(existingSeller.Id);
             return;
+        }
 
         var seller = Seller.Create("Prodify Demo Store", sellerEmail, "+234 800 000 0000");
         seller.Approve();
@@ -64,8 +68,8 @@ public class DemoCatalogSeeder
 
             var product = Product.Create(item.Name, item.Description, category.Id, seller.Id, brand?.Id);
 
-            product.AddImage(ImageUrl(item.Name, "e6f4f1", "0e7c66"), item.Name);
-            product.AddImage(ImageUrl(item.Name, "fef3c7", "92400e"), item.Name);
+            foreach (var url in PhotosFor(item.Name))
+                product.AddImage(url, item.Name);
 
             foreach (var (name, value) in item.Attributes)
                 product.AddAttribute(name, value);
@@ -87,6 +91,41 @@ public class DemoCatalogSeeder
         await CreateSellerLoginAsync(seller.Id, sellerEmail);
 
         _logger.LogInformation("Seeded demo catalog: {Count} products for {Seller}", DemoProducts.Length, sellerEmail);
+    }
+
+    // Databases seeded before the demo had real photos still show placeholder images.
+    // Swap those for the photos below (only when every image is still a placeholder,
+    // so photos a seller changed are never touched).
+    private async Task ReplacePlaceholderPhotosAsync(Guid sellerId)
+    {
+        var products = await _context.Products
+            .Include(p => p.Images)
+            .Where(p => p.SellerId == sellerId)
+            .ToListAsync();
+
+        var updated = 0;
+
+        foreach (var product in products)
+        {
+            if (!DemoPhotos.ContainsKey(product.Name)
+                || product.Images.Count == 0
+                || !product.Images.All(i => i.Url.StartsWith(PlaceholderHost, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            foreach (var image in product.Images.ToList())
+                product.RemoveImage(image.Id);
+
+            foreach (var url in PhotosFor(product.Name))
+                product.AddImage(url, product.Name);
+
+            updated++;
+        }
+
+        if (updated > 0)
+        {
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Replaced placeholder images with photos on {Count} demo products", updated);
+        }
     }
 
     // So the seller portal can be tried out with real data.
@@ -143,9 +182,39 @@ public class DemoCatalogSeeder
         return brand;
     }
 
-    // Placeholder images in the Prodify colours; sellers replace them with real photos.
-    private static string ImageUrl(string text, string background, string foreground) =>
-        $"https://placehold.co/600x600/{background}/{foreground}/png?text={Uri.EscapeDataString(text).Replace("%20", "+")}";
+    private const string PlaceholderHost = "https://placehold.co/";
+
+    private static IEnumerable<string> PhotosFor(string productName) =>
+        DemoPhotos.TryGetValue(productName, out var photoIds)
+            ? photoIds.Select(Photo)
+            : new[] { Placeholder(productName) };
+
+    // Free photos from Unsplash (unsplash.com/license), resized by their image service.
+    private static string Photo(string unsplashId) =>
+        $"https://images.unsplash.com/photo-{unsplashId}?auto=format&fit=crop&w=800&h=800&q=80";
+
+    // Used if a demo product has no photo listed.
+    private static string Placeholder(string text) =>
+        $"{PlaceholderHost}600x600/e6f4f1/0e7c66/png?text={Uri.EscapeDataString(text).Replace("%20", "+")}";
+
+    // Product name -> Unsplash photo ids. The first photo is the main one in the shop.
+    private static readonly Dictionary<string, string[]> DemoPhotos = new()
+    {
+        ["Tecno Spark 20 Pro"] = new[] { "1511707171634-5f897ff02aa9", "1512054502232-10a0a035d672" },
+        ["Samsung Galaxy A15"] = new[] { "1610945415295-d9bbf067e59c", "1598327105666-5b89351aff97" },
+        ["Infinix Hot 40i"] = new[] { "1601784551446-20c9e07cdbdb" },
+        ["HP 250 G9 Laptop"] = new[] { "1496181133206-80ce9b88a853", "1525547719571-a2d4ac8945e2" },
+        ["Oraimo FreePods 4"] = new[] { "1590658268037-6bf12165a8df", "1606220588913-b3aacb4d2f46" },
+        ["Hisense 43\" Smart TV"] = new[] { "1593359677879-a4bb92f829d1" },
+        ["Men's Classic Ankara Shirt"] = new[] { "1596755094514-f87e34085b2c", "1602810318383-e386cc2a3ccf" },
+        ["Women's Running Sneakers"] = new[] { "1542291026-7eec264c27ff", "1606107557195-0e29a4b5b4aa" },
+        ["Binatone 1.7L Electric Kettle"] = new[] { "1594213114663-d94db9b17125" },
+        ["Scanfrost 5-Burner Gas Cooker"] = new[] { "1556909114-f6e7ad7d3136" },
+        ["Nivea Men Deep Clean Face Wash"] = new[] { "1556228720-195a672e8a03", "1571781926291-c477ebfd024b" },
+        ["Mamador Pure Vegetable Oil 3L"] = new[] { "1474979266404-7eaacbcd87c5" },
+        ["Golden Penny Spaghetti (Pack of 20)"] = new[] { "1551462147-ff29053bfc14" },
+        ["PlayStation 5 DualSense Controller"] = new[] { "1606813907291-d86efa9b94db", "1592840496694-26d035b52b48" }
+    };
 
     private sealed record DemoVariant(string Sku, decimal Price, int Stock, string? Name = null, decimal? CompareAtPrice = null, decimal Weight = 0.5m);
 
