@@ -30,8 +30,6 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
             case SellerOrderStatus.Confirmed:
                 Ensure(SellerOrderRules.CanConfirm(sellerOrder, order), sellerOrder, "confirmed");
                 sellerOrder.TransitionTo(SellerOrderStatus.Confirmed);
-                // Pay on delivery: the last delivery (or a cancel that leaves only delivered parts) means the cash is in.
-                _context.RecordCashOnDeliveryIfComplete(order);
                 break;
 
             case SellerOrderStatus.Packed:
@@ -61,6 +59,9 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
                 await _context.ReleaseSellerOrderStockAsync(order.Id, variantIds, cancellationToken);
                 break;
         }
+
+        // Pay on delivery: the last delivery (or a cancel that leaves only delivered parts) means the cash is in.
+        _context.RecordCashOnDeliveryIfComplete(order);
     }
 
     // The package leaves: record it as a shipment so it can be tracked.
