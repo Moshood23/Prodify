@@ -30,6 +30,8 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
             case SellerOrderStatus.Confirmed:
                 Ensure(SellerOrderRules.CanConfirm(sellerOrder, order), sellerOrder, "confirmed");
                 sellerOrder.TransitionTo(SellerOrderStatus.Confirmed);
+                // Pay on delivery: the last delivery (or a cancel that leaves only delivered parts) means the cash is in.
+                _context.RecordCashOnDeliveryIfComplete(order);
                 break;
 
             case SellerOrderStatus.Packed:
