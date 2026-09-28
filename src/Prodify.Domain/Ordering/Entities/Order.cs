@@ -129,22 +129,26 @@ public class Order : AuditableEntity
 
     private OrderStatus ComputeStatus()
     {
-        if (_sellerOrders.All(so => so.Status == SellerOrderStatus.Cancelled))
+        // Parts a seller cancelled don't hold the rest of the order back:
+        // one part delivered + one part cancelled means the order is delivered.
+        var active = _sellerOrders.Where(so => so.Status != SellerOrderStatus.Cancelled).ToList();
+
+        if (active.Count == 0)
             return OrderStatus.Cancelled;
 
-        if (_sellerOrders.All(so => so.Status == SellerOrderStatus.Delivered))
+        if (active.All(so => so.Status == SellerOrderStatus.Delivered))
             return OrderStatus.Delivered;
 
-        if (_sellerOrders.Any(so => so.Status == SellerOrderStatus.Delivered))
+        if (active.Any(so => so.Status == SellerOrderStatus.Delivered))
             return OrderStatus.PartiallyDelivered;
 
-        if (_sellerOrders.All(so => so.Status == SellerOrderStatus.Shipped))
+        if (active.All(so => so.Status == SellerOrderStatus.Shipped))
             return OrderStatus.Shipped;
 
-        if (_sellerOrders.Any(so => so.Status == SellerOrderStatus.Shipped))
+        if (active.Any(so => so.Status == SellerOrderStatus.Shipped))
             return OrderStatus.PartiallyShipped;
 
-        if (_sellerOrders.All(so => so.Status == SellerOrderStatus.Pending))
+        if (active.All(so => so.Status == SellerOrderStatus.Pending))
             return OrderStatus.Pending;
 
         return OrderStatus.Confirmed;

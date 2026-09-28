@@ -93,8 +93,7 @@ public static class DependencyInjection
 
         services.AddHostedService<OutboxProcessorHostedService>();
         services.AddHostedService<ReservationExpirationService>();
-        services.AddHostedService<PaymentRetryService>();
-
+        services.AddHostedService<UnpaidOrderCancellationService>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly));
 
         services.AddValidatorsFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly);

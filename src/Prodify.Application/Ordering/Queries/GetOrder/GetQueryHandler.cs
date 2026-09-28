@@ -23,6 +23,8 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
     {
         var order = await _context.Orders
             .Include(o => o.Items)
+                        .Include(o => o.SellerOrders)
+                .ThenInclude(so => so.StatusHistory)
             .Include(o => o.SellerOrders)
                 .ThenInclude(so => so.Items)
             .FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
@@ -84,6 +86,10 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
                 SellerName = sellerNames.GetValueOrDefault(so.SellerId) ?? "Seller",
                 Status = so.Status.ToString(),
                 Total = so.Total.Amount,
+                CancelReason = so.StatusHistory
+                    .Where(h => h.Status == SellerOrderStatus.Cancelled)
+                    .Select(h => h.Notes)
+                    .FirstOrDefault(),
                 Items = so.Items.Select(i => new SellerOrderItemDto
                 {
                     ProductVariantId = i.ProductVariantId,

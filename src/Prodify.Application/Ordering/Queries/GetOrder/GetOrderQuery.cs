@@ -45,6 +45,7 @@ public class SellerOrderDto
     public string SellerName { get; set; } = null!;
     public string Status { get; set; } = null!;
     public decimal Total { get; set; }
+    public string? CancelReason { get; set; }
     public List<SellerOrderItemDto> Items { get; set; } = new();
 }
 
