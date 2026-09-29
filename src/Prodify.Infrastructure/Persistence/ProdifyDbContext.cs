@@ -58,6 +58,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
 
     // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<Prodify.Infrastructure.Email.EmailMessage> EmailMessages => Set<Prodify.Infrastructure.Email.EmailMessage>();
     // Identity
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 

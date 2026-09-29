@@ -6,6 +6,8 @@ using Prodify.Application.Identity.Commands.Logout;
 using Prodify.Application.Identity.Commands.RefreshToken;
 using Prodify.Application.Identity.Commands.Register;
 using Prodify.Application.Identity.Commands.ChangePassword;
+using Prodify.Application.Identity.Commands.ForgotPassword;
+using Prodify.Application.Identity.Commands.ResetPassword;
 
 namespace Prodify.Api.Controllers;
 
@@ -53,6 +55,22 @@ public class AuthController : ControllerBase
     {
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
+    }
+
+    // Always 204, whether or not the email has an account (so it can't be used to look accounts up).
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    // With the token from the reset email. The user then logs in with the new password.
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordCommand command, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 
 

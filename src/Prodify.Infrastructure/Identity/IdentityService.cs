@@ -145,6 +145,56 @@ public class IdentityService : IIdentityService
         return await IssueTokensAsync(user, cancellationToken);
     }
 
+    public async Task<string?> GeneratePasswordResetTokenAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email.Trim());
+        if (user is null)
+            return null;
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        return Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+    }
+
+    public async Task<Application.Common.Interfaces.IdentityResult> ResetPasswordAsync(
+        string email, string token, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email.Trim());
+        var decoded = TryBase64UrlDecode(token);
+
+        if (user is null || decoded is null)
+            return Failure(InvalidResetLink);
+
+        var result = await _userManager.ResetPasswordAsync(user, Encoding.UTF8.GetString(decoded), newPassword);
+
+        if (!result.Succeeded)
+            return Failure(result.Errors.Select(e => e.Code == "InvalidToken" ? InvalidResetLink : e.Description));
+
+        // Anyone who had the old password may still be logged in: end those sessions.
+        await RevokeAllForUserAsync(user.Id, cancellationToken);
+
+        return new Application.Common.Interfaces.IdentityResult(true, user.Id, null, Enumerable.Empty<string>());
+    }
+
+    public const string InvalidResetLink = "This reset link is invalid or has expired. Please request a new one.";
+
+    private static string Base64UrlEncode(byte[] bytes) =>
+        Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+    private static byte[]? TryBase64UrlDecode(string value)
+    {
+        var base64 = value.Trim().Replace('-', '+').Replace('_', '/');
+        base64 += (base64.Length % 4) switch { 2 => "==", 3 => "=", _ => "" };
+
+        try
+        {
+            return Convert.FromBase64String(base64);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+    }
+
 
     public async Task RevokeRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default)
     {
