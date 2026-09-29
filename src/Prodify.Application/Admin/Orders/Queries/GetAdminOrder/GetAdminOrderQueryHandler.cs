@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Ordering.Queries.GetOrder;
+using Prodify.Application.Ordering.Common;
 
 namespace Prodify.Application.Admin.Orders.Queries.GetAdminOrder;
 
@@ -53,9 +54,15 @@ public class GetAdminOrderQueryHandler : IRequestHandler<GetAdminOrderQuery, Adm
             .Select(s => new { s.SellerOrderId, s.Carrier, s.TrackingNumber })
             .ToListAsync(cancellationToken);
 
+        // The shared order view only has status names, so check the rule on the stored order.
+        var storedOrder = await _context.Orders
+            .Include(o => o.SellerOrders)
+            .FirstAsync(o => o.Id == order.Id, cancellationToken);
+
         return new AdminOrderDto
         {
             Order = order,
+            CanCancel = OrderRules.CanAdminCancel(storedOrder),
             Customer = customer,
             SellerProgress = sellerOrderIds.Select(id =>
             {

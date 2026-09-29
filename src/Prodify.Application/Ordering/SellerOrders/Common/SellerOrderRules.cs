@@ -19,7 +19,7 @@ public static class SellerOrderRules
 
     public static bool CanDeliver(SellerOrder sellerOrder) => sellerOrder.Status == SellerOrderStatus.Shipped;
 
-    // Paid orders would need a refund, which isn't built yet.
-    public static bool CanCancel(SellerOrder sellerOrder, Order order) =>
-        sellerOrder.Status is SellerOrderStatus.Pending or SellerOrderStatus.Confirmed && !order.IsPaid;
+    // Before packing. If the customer paid by card, their money for this part is refunded.
+    public static bool CanCancel(SellerOrder sellerOrder) =>
+        sellerOrder.Status is SellerOrderStatus.Pending or SellerOrderStatus.Confirmed;
 }

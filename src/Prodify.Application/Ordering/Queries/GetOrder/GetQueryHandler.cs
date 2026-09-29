@@ -53,6 +53,9 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
             && order.PaymentMethod == PaymentMethod.Card
             && order.Status != OrderStatus.Cancelled
             && await _context.HasActiveReservationsAsync(order.Id, cancellationToken);
+        var refundedAmount = await _context.Payments
+            .Where(p => p.OrderId == order.Id)
+            .SumAsync(p => (decimal?)p.RefundedAmount, cancellationToken) ?? 0;
 
         var address = order.ShippingAddress;
 
@@ -66,6 +69,7 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
             PaymentMethod = order.PaymentMethod.ToString(),
             Status = order.Status.ToString(),
             Total = order.Total.Amount,
+            RefundedAmount = refundedAmount,
             CanCancel = OrderRules.CanBeCancelled(order),
             CanPay = canPay,
             ShippingAddress = new OrderAddressDto

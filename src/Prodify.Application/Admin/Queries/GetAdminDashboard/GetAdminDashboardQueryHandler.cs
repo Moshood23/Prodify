@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Domain.Ordering.Entities;
+using Prodify.Application.Ordering.Common;
 using Prodify.Domain.Sellers.Entities;
 
 namespace Prodify.Application.Admin.Queries.GetAdminDashboard;
@@ -50,13 +51,9 @@ public class GetAdminDashboardQueryHandler : IRequestHandler<GetAdminDashboardQu
             ActiveProducts = await _context.Products.CountAsync(p => p.IsActive, cancellationToken),
             TotalOrders = await _context.Orders.CountAsync(cancellationToken),
             OrdersToday = await _context.Orders.CountAsync(o => o.CreatedAt >= startOfToday, cancellationToken),
-            PaidSales = await _context.Orders
-                .Where(o => o.IsPaid)
-                .SelectMany(o => o.Items)
+            PaidSales = await _context.SoldItems(_context.Orders.Where(o => o.IsPaid))
                 .SumAsync(i => (decimal?)(i.UnitPrice.Amount * i.Quantity), cancellationToken) ?? 0,
-            PaidSalesLast7Days = await _context.Orders
-                .Where(o => o.IsPaid && o.CreatedAt >= startOfWeek)
-                .SelectMany(o => o.Items)
+            PaidSalesLast7Days = await _context.SoldItems(_context.Orders.Where(o => o.IsPaid && o.CreatedAt >= startOfWeek))
                 .SumAsync(i => (decimal?)(i.UnitPrice.Amount * i.Quantity), cancellationToken) ?? 0,
             SellerOrdersToFulfil = await _context.SellerOrders
                 .Where(so => so.Status == SellerOrderStatus.Pending || so.Status == SellerOrderStatus.Confirmed || so.Status == SellerOrderStatus.Packed)

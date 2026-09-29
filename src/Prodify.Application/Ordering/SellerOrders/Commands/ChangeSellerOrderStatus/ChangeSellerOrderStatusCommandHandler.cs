@@ -13,11 +13,13 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly IPaymentService _paymentService;
 
-    public ChangeSellerOrderStatusCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+    public ChangeSellerOrderStatusCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, IPaymentService paymentService)
     {
         _context = context;
         _currentUser = currentUser;
+        _paymentService = paymentService;
     }
 
     public async Task Handle(ChangeSellerOrderStatusCommand request, CancellationToken cancellationToken)
@@ -49,10 +51,10 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
                 break;
 
             case SellerOrderStatus.Cancelled:
-                if (order.IsPaid && sellerOrder.Status is SellerOrderStatus.Pending or SellerOrderStatus.Confirmed)
-                    throw new BusinessRuleException("Paid orders can't be cancelled online yet. Please contact Prodify support.");
+                Ensure(SellerOrderRules.CanCancel(sellerOrder), sellerOrder, "cancelled");
 
-                Ensure(SellerOrderRules.CanCancel(sellerOrder, order), sellerOrder, "cancelled");
+                // The customer gets this part's money back (refund first: if it fails, nothing changes).
+                await _context.RefundIfPaidAsync(_paymentService, order, sellerOrder.Total.Amount, cancellationToken);
                 sellerOrder.TransitionTo(SellerOrderStatus.Cancelled, request.Reason!.Trim());
 
                 var variantIds = sellerOrder.Items.Select(i => i.ProductVariantId).ToList();

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Domain.Ordering.Entities;
+using Prodify.Application.Ordering.Common;
 
 namespace Prodify.Application.Admin.Customers.Queries.GetCustomerDetails;
 
@@ -34,9 +35,7 @@ public class GetCustomerDetailsQueryHandler : IRequestHandler<GetCustomerDetails
             CreatedAt = customer.CreatedAt,
             OrderCount = await orders.CountAsync(cancellationToken),
             CancelledOrderCount = await orders.CountAsync(o => o.SellerOrders.All(so => so.Status == SellerOrderStatus.Cancelled), cancellationToken),
-            TotalSpent = await orders
-                .Where(o => o.IsPaid)
-                .SelectMany(o => o.Items)
+            TotalSpent = await _context.SoldItems(orders.Where(o => o.IsPaid))
                 .SumAsync(i => (decimal?)(i.UnitPrice.Amount * i.Quantity), cancellationToken) ?? 0,
             Addresses = customer.Addresses
                 .OrderByDescending(a => a.IsDefault)

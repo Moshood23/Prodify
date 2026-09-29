@@ -17,6 +17,7 @@ public class OrderDto
     public string PaymentMethod { get; set; } = null!;
     public string Status { get; set; } = null!;
     public decimal Total { get; set; }
+    public decimal RefundedAmount { get; set; }
 
     // What the customer can do next.
     public bool CanCancel { get; set; }

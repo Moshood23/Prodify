@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Models;
+using Prodify.Domain.Ordering.Entities;
 
 namespace Prodify.Application.Admin.Customers.Queries.ListCustomers;
 
@@ -42,9 +43,10 @@ public class ListCustomersQueryHandler : IRequestHandler<ListCustomersQuery, Pag
                 PhoneNumber = c.PhoneNumber,
                 CreatedAt = c.CreatedAt,
                 OrderCount = _context.Orders.Count(o => o.CustomerId == c.Id),
-                TotalSpent = _context.Orders
-                    .Where(o => o.CustomerId == c.Id && o.IsPaid)
-                    .SelectMany(o => o.Items)
+                TotalSpent = _context.SellerOrders
+                    .Where(so => so.Status != SellerOrderStatus.Cancelled
+                        && _context.Orders.Any(o => o.Id == so.OrderId && o.CustomerId == c.Id && o.IsPaid))
+                    .SelectMany(so => so.Items)
                     .Sum(i => (decimal?)(i.UnitPrice.Amount * i.Quantity)) ?? 0
             })
             .ToListAsync(cancellationToken);

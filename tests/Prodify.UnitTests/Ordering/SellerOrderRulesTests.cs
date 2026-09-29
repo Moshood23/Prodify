@@ -33,14 +33,30 @@ public class SellerOrderRulesTests
     }
 
     [Fact]
-    public void PaidOrder_CanBeConfirmedButNotCancelled()
+    public void PaidOrder_CanBeConfirmedOrCancelledWithARefund()
     {
         var order = PlaceOrder(PaymentMethod.Card);
         order.MarkAsPaid(Guid.NewGuid());
         var sellerOrder = order.SellerOrders.Single();
 
         Assert.True(SellerOrderRules.CanConfirm(sellerOrder, order));
-        Assert.False(SellerOrderRules.CanCancel(sellerOrder, order));
+        Assert.True(SellerOrderRules.CanCancel(sellerOrder));
+        Assert.True(OrderRules.CanBeCancelled(order));
+    }
+
+    [Fact]
+    public void Admin_CanCancelPackedOrdersButNotShippedOnes()
+    {
+        var order = PlaceOrder(PaymentMethod.PayOnDelivery);
+        var sellerOrder = order.SellerOrders.Single();
+        sellerOrder.TransitionTo(SellerOrderStatus.Confirmed);
+        sellerOrder.TransitionTo(SellerOrderStatus.Packed);
+
+        Assert.False(OrderRules.CanBeCancelled(order));
+        Assert.True(OrderRules.CanAdminCancel(order));
+
+        sellerOrder.TransitionTo(SellerOrderStatus.Shipped);
+        Assert.False(OrderRules.CanAdminCancel(order));
     }
 
     [Fact]
@@ -53,11 +69,11 @@ public class SellerOrderRulesTests
 
         sellerOrder.TransitionTo(SellerOrderStatus.Confirmed);
         Assert.True(SellerOrderRules.CanPack(sellerOrder));
-        Assert.True(SellerOrderRules.CanCancel(sellerOrder, order));
+        Assert.True(SellerOrderRules.CanCancel(sellerOrder));
 
         sellerOrder.TransitionTo(SellerOrderStatus.Packed);
         Assert.True(SellerOrderRules.CanShip(sellerOrder));
-        Assert.False(SellerOrderRules.CanCancel(sellerOrder, order));
+        Assert.False(SellerOrderRules.CanCancel(sellerOrder));
 
         sellerOrder.TransitionTo(SellerOrderStatus.Shipped);
         Assert.True(SellerOrderRules.CanDeliver(sellerOrder));

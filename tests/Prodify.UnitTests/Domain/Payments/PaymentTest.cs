@@ -69,4 +69,39 @@ public class PaymentTests
         Assert.Equal(2, payment.Attempts.Count);
         Assert.Equal(PaymentStatus.Succeeded, payment.Status);
     }
+
+
+    [Fact]
+    public void RecordRefund_PartThenRest_EndsFullyRefunded()
+    {
+        var payment = Payment.Create(Guid.NewGuid(), Money.Create(1000m));
+        var attempt = payment.StartAttempt();
+        payment.CompleteAttempt(attempt.Id, "gateway-ref-789");
+
+        payment.RecordRefund(400m);
+        Assert.Equal(PaymentStatus.PartiallyRefunded, payment.Status);
+        Assert.Equal(400m, payment.RefundedAmount);
+
+        payment.RecordRefund(600m);
+        Assert.Equal(PaymentStatus.Refunded, payment.Status);
+        Assert.Equal("gateway-ref-789", payment.GatewayReference);
+    }
+
+    [Fact]
+    public void RecordRefund_MoreThanPaid_Throws()
+    {
+        var payment = Payment.Create(Guid.NewGuid(), Money.Create(1000m));
+        var attempt = payment.StartAttempt();
+        payment.CompleteAttempt(attempt.Id, "gateway-ref-790");
+
+        Assert.Throws<InvalidOperationException>(() => payment.RecordRefund(1000.01m));
+    }
+
+    [Fact]
+    public void RecordRefund_BeforePaymentSucceeded_Throws()
+    {
+        var payment = Payment.Create(Guid.NewGuid(), Money.Create(1000m));
+
+        Assert.Throws<InvalidOperationException>(() => payment.RecordRefund(100m));
+    }
 }
