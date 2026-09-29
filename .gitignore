@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Uploaded product photos (local development storage)
 src/Prodify.Api/uploads/
+
+# Emails saved as files while developing (Email:Mode = Files)
+src/Prodify.Api/emails/

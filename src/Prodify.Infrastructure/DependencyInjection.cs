@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Infrastructure.BackgroundJobs;
+using Prodify.Infrastructure.Email;
 using Prodify.Infrastructure.Identity;
 using Prodify.Infrastructure.Messaging.InProcess;
 using Prodify.Infrastructure.Messaging.Outbox;
@@ -42,6 +43,7 @@ public static class DependencyInjection
         })
             .AddEntityFrameworkStores<ProdifyDbContext>()
             .AddDefaultTokenProviders();
+        services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(1));
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddSingleton<JwtService>();
@@ -89,12 +91,20 @@ public static class DependencyInjection
         services.AddScoped<IPaymentService, SimulatedPaymentGateway>();
         services.AddScoped<INotificationService, LogNotificationService>();
         services.AddScoped<IIdentityService, IdentityService>();
+        services.Configure<EmailSettings>(configuration.GetSection("Email"));
+        services.AddScoped<IEmailQueue, EmailQueue>();
+        services.AddSingleton<IAppUrls, AppUrls>();
+        if (string.Equals(configuration["Email:Mode"], "Smtp", StringComparison.OrdinalIgnoreCase))
+            services.AddScoped<IEmailTransport, SmtpEmailTransport>();
+        else
+            services.AddScoped<IEmailTransport, FileEmailTransport>();
         services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
         services.AddScoped<IFileStorage, LocalFileStorage>();
 
         services.AddHostedService<OutboxProcessorHostedService>();
         services.AddHostedService<ReservationExpirationService>();
         services.AddHostedService<UnpaidOrderCancellationService>();
+        services.AddHostedService<EmailDispatchService>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly));
 
         services.AddValidatorsFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly);

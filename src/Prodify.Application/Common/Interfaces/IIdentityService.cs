@@ -21,6 +21,14 @@ public interface IIdentityService
     // Changes the password, logs the user out everywhere else and returns fresh tokens for this session.
     Task<IdentityResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default);
 
+    // A one-time password reset token (URL-safe) for the account with this email,
+    // or null if there is no such account. Valid for 1 hour.
+    Task<string?> GeneratePasswordResetTokenAsync(string email, CancellationToken cancellationToken = default);
+
+    // Sets a new password using a token from GeneratePasswordResetTokenAsync and
+    // logs the user out everywhere. No tokens are returned: the user logs in again.
+    Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword, CancellationToken cancellationToken = default);
+
     // Revokes a refresh token that belongs to the given user (logout).
     Task RevokeRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default);
 }

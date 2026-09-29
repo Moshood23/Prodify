@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
@@ -11,11 +12,15 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
 {
     private readonly IApplicationDbContext _context;
     private readonly IIdentityService _identityService;
+    private readonly IEmailQueue _emails;
+    private readonly IAppUrls _urls;
 
-    public RegisterCommandHandler(IApplicationDbContext context, IIdentityService identityService)
+    public RegisterCommandHandler(IApplicationDbContext context, IIdentityService identityService, IEmailQueue emails, IAppUrls urls)
     {
         _context = context;
         _identityService = identityService;
+        _emails = emails;
+        _urls = urls;
     }
 
     public async Task<AuthResultDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -25,7 +30,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
         var emailTaken = await _context.Customers.AnyAsync(c => c.Email == email, cancellationToken);
 
         if (emailTaken)
-        throw new ConflictException($"An account with email '{email}' already exists.");
+            throw new ConflictException($"An account with email '{email}' already exists.");
 
         var customer = Customer.Create(request.FirstName, request.LastName, request.Email, request.PhoneNumber);
         _context.Add(customer);
@@ -37,6 +42,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
 
         if (!result.Succeeded)
             throw new BusinessRuleException(string.Join(" ", result.Errors));
+
+        _emails.Enqueue(email, customer.FirstName, AccountEmails.Welcome(customer.FirstName, _urls));
 
         return new AuthResultDto
         {

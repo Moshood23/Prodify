@@ -1716,6 +1716,57 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Prodify.Infrastructure.Email.EmailMessage", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<int>("Attempts")
+                    .HasColumnType("int");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("HtmlBody")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<string>("LastError")
+                    .HasMaxLength(1000)
+                    .HasColumnType("nvarchar(1000)");
+
+                b.Property<DateTime>("NextAttemptAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<DateTime?>("SentAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("Subject")
+                    .IsRequired()
+                    .HasMaxLength(300)
+                    .HasColumnType("nvarchar(300)");
+
+                b.Property<string>("TextBody")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<string>("ToAddress")
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<string>("ToName")
+                    .HasMaxLength(200)
+                    .HasColumnType("nvarchar(200)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("SentAt", "NextAttemptAt");
+
+                b.ToTable("EmailMessages", (string)null);
+            });
+
+
             modelBuilder.Entity("Prodify.Infrastructure.Identity.RefreshToken", b =>
                 {
                     b.HasOne("Prodify.Infrastructure.Identity.ApplicationUser", null)
