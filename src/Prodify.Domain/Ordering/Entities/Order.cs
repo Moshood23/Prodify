@@ -109,7 +109,7 @@ public class Order : AuditableEntity
 
         foreach (var sellerOrder in _sellerOrders)
         {
-            if (sellerOrder.Status is SellerOrderStatus.Pending or SellerOrderStatus.Confirmed)
+            if (sellerOrder.Status is SellerOrderStatus.Pending or SellerOrderStatus.Confirmed or SellerOrderStatus.Packed)
                 sellerOrder.TransitionTo(SellerOrderStatus.Cancelled, reason);
         }
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Admin.Customers.Queries.GetCustomerDetails;
 using Prodify.Application.Admin.Customers.Queries.ListCustomers;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Admin.Orders.Commands.CancelAdminOrder;
 
 namespace Prodify.Api.Controllers;
 
@@ -32,5 +33,13 @@ public class AdminCustomersController : ControllerBase
     {
         var result = await _mediator.Send(new GetCustomerDetailsQuery { Id = id }, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> Cancel(Guid id, CancelAdminOrderCommand command, CancellationToken cancellationToken)
+    {
+        command.OrderId = id;
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 }

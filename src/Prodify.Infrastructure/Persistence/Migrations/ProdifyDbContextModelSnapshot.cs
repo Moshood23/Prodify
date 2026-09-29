@@ -936,6 +936,12 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
+
+                    b.Property<decimal>("RefundedAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)

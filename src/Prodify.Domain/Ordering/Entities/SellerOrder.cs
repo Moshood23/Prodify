@@ -66,7 +66,7 @@ public class SellerOrder : AuditableEntity
             SellerOrderStatus.Packed => current == SellerOrderStatus.Confirmed,
             SellerOrderStatus.Shipped => current == SellerOrderStatus.Packed,
             SellerOrderStatus.Delivered => current == SellerOrderStatus.Shipped,
-            SellerOrderStatus.Cancelled => current is SellerOrderStatus.Pending or SellerOrderStatus.Confirmed,
+            SellerOrderStatus.Cancelled => current is SellerOrderStatus.Pending or SellerOrderStatus.Confirmed or SellerOrderStatus.Packed,
             _ => false
         };
     }

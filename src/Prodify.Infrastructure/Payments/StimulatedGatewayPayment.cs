@@ -24,4 +24,10 @@ public class SimulatedPaymentGateway : IPaymentService
             GatewayReference: gatewayReference,
             FailureReason: null));
     }
+
+    public Task<PaymentResult> RefundAsync(string gatewayReference, Money amount, CancellationToken cancellationToken = default) =>
+        Task.FromResult(new PaymentResult(
+            Succeeded: true,
+            GatewayReference: $"SIMREF-{Guid.NewGuid():N}",
+            FailureReason: null));
 }

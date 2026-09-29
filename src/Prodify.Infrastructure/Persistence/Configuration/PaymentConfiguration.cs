@@ -35,6 +35,14 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+
+        builder.Property(p => p.RefundedAmount)
+            .HasColumnType("decimal(18,2)")
+            .HasDefaultValue(0m);
+
+        builder.Ignore(p => p.IsCaptured);
+        builder.Ignore(p => p.GatewayReference);
+
         builder.Property(p => p.CreatedAt).IsRequired();
         builder.Property(p => p.CreatedBy).HasMaxLength(256);
         builder.Property(p => p.ModifiedAt);

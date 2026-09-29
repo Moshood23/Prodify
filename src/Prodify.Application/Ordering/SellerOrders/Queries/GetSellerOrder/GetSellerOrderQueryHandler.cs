@@ -89,7 +89,7 @@ public class GetSellerOrderQueryHandler : IRequestHandler<GetSellerOrderQuery, S
             CanPack = SellerOrderRules.CanPack(sellerOrder),
             CanShip = SellerOrderRules.CanShip(sellerOrder),
             CanDeliver = SellerOrderRules.CanDeliver(sellerOrder),
-            CanCancel = SellerOrderRules.CanCancel(sellerOrder, order)
+            CanCancel = SellerOrderRules.CanCancel(sellerOrder)
         };
     }
 }

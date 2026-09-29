@@ -12,6 +12,7 @@ public class GetAdminOrderQuery : IRequest<AdminOrderDto>
 public class AdminOrderDto
 {
     public OrderDto Order { get; set; } = null!;
+    public bool CanCancel { get; set; }
     public AdminOrderCustomerDto Customer { get; set; } = null!;
     public List<AdminSellerOrderProgressDto> SellerProgress { get; set; } = new();
 }
