@@ -32,9 +32,8 @@ public class CancelAdminOrderCommandHandler : IRequestHandler<CancelAdminOrderCo
                 $"This order can't be cancelled (status: {order.Status}). Parts that were shipped or delivered can't be stopped.");
 
         var cancelling = order.SellerOrders.Where(OrderRules.IsStoppable).ToList();
-        var refund = OrderRefunds.TotalOf(cancelling);
-
         // Refund first: if the gateway says no, nothing is cancelled.
+        var refund = OrderRefunds.RefundFor(order, cancelling);
         await _context.RefundIfPaidAsync(_paymentService, order, refund, cancellationToken);
 
         order.Cancel(request.Reason.Trim());

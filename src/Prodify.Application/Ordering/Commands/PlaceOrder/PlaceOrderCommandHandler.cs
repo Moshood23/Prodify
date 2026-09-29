@@ -7,6 +7,8 @@ using Prodify.Application.Common.Security;
 using Prodify.Domain.Inventory.Entities;
 using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Ordering.ValueObjects;
+using Prodify.Application.Shipping.DeliveryFees;
+
 
 namespace Prodify.Application.Ordering.Commands.PlaceOrder;
 
@@ -69,7 +71,10 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
             request.AddressLine2,
             request.PostalCode);
 
-        var order = Order.Place(customerId, shippingAddress, lineItems, paymentMethod);
+        var deliveryFee = await _context.GetDeliveryFeeAsync(request.State, cancellationToken)
+            ?? throw new BusinessRuleException($"We don't deliver to {request.State.Trim()} yet. Please choose another address.");
+
+        var order = Order.Place(customerId, shippingAddress, lineItems, paymentMethod, deliveryFee);
         _context.Add(order);
 
         foreach (var (item, quantity) in stockToReserve)

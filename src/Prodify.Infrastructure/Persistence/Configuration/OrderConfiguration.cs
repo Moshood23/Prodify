@@ -55,8 +55,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.ModifiedBy).HasMaxLength(256);
 
         builder.Ignore(o => o.DomainEvents);
-        builder.Ignore(o => o.Total);
-        builder.Ignore(o => o.Status);
+        builder.Property(o => o.DeliveryFee)
+            .HasColumnType("decimal(18,2)")
+            .HasDefaultValue(0m);
+
+        builder.Ignore(o => o.ItemsTotal);
+        builder.Ignore(o => o.Total); builder.Ignore(o => o.Status);
 
         builder.HasMany(o => o.SellerOrders)
             .WithOne()

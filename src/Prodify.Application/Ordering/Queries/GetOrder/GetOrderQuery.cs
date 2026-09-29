@@ -16,6 +16,8 @@ public class OrderDto
     public bool IsPaid { get; set; }
     public string PaymentMethod { get; set; } = null!;
     public string Status { get; set; } = null!;
+    public decimal ItemsTotal { get; set; }
+    public decimal DeliveryFee { get; set; }
     public decimal Total { get; set; }
     public decimal RefundedAmount { get; set; }
 

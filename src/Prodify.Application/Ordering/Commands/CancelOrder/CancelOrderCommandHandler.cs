@@ -34,7 +34,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand>
             throw new BusinessRuleException($"This order can no longer be cancelled (status: {order.Status}).");
 
         // Refund first: if the gateway says no, nothing is cancelled.
-        var refund = OrderRefunds.TotalOf(order.SellerOrders.Where(OrderRules.IsStoppable));
+        var refund = OrderRefunds.RefundFor(order, order.SellerOrders.Where(OrderRules.IsStoppable).ToList());
         await _context.RefundIfPaidAsync(_paymentService, order, refund, cancellationToken);
 
         order.Cancel(request.Reason);

@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IdentitySeeder>();
         services.Configure<DemoDataSettings>(configuration.GetSection("DemoData"));
         services.AddScoped<DemoCatalogSeeder>();
+        services.AddScoped<DeliveryFeeSeeder>();
 
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
 

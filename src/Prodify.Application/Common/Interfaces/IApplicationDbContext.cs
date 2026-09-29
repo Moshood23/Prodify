@@ -33,6 +33,8 @@ public interface IApplicationDbContext
 
     IQueryable<Domain.Shipping.Entities.Shipment> Shipments { get; }
 
+    IQueryable<Domain.Shipping.Entities.DeliveryFee> DeliveryFees { get; }
+
     IQueryable<Notification> Notifications { get; }
 
     void Add<TEntity>(TEntity entity) where TEntity : class;

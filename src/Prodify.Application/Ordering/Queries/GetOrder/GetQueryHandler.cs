@@ -68,6 +68,8 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
             IsPaid = order.IsPaid,
             PaymentMethod = order.PaymentMethod.ToString(),
             Status = order.Status.ToString(),
+            ItemsTotal = order.ItemsTotal.Amount,
+            DeliveryFee = order.DeliveryFee,
             Total = order.Total.Amount,
             RefundedAmount = refundedAmount,
             CanCancel = OrderRules.CanBeCancelled(order),
