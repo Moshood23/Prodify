@@ -32,11 +32,18 @@ public class Order : AuditableEntity
     public bool IsPaid { get; private set; }
     public PaymentMethod PaymentMethod { get; private set; }
 
+    // Fixed when the order is placed, so later changes to the state's fee don't affect it.
+    public decimal DeliveryFee { get; private set; }
+
     public ICollection<SellerOrder> SellerOrders => _sellerOrders;
     public ICollection<OrderItem> Items => _items;
-    public Money Total => _items
+
+    public Money ItemsTotal => _items
         .Select(i => i.Subtotal)
         .Aggregate(Money.Zero(), (acc, next) => acc.Add(next));
+
+    // What the customer pays: items plus delivery.
+    public Money Total => ItemsTotal.Add(Money.Create(DeliveryFee));
 
     public OrderStatus Status => ComputeStatus();
 
@@ -44,12 +51,13 @@ public class Order : AuditableEntity
     {
     }
 
-    private Order(Guid id, Guid customerId, OrderAddress shippingAddress, PaymentMethod paymentMethod) : base(id)
+    private Order(Guid id, Guid customerId, OrderAddress shippingAddress, PaymentMethod paymentMethod, decimal deliveryFee) : base(id)
     {
         OrderNumber = OrderNumber.Generate();
         CustomerId = customerId;
         ShippingAddress = shippingAddress;
         PaymentMethod = paymentMethod;
+        DeliveryFee = deliveryFee;
         IsPaid = false;
     }
 
@@ -57,9 +65,13 @@ public class Order : AuditableEntity
         Guid customerId,
         OrderAddress shippingAddress,
         IEnumerable<(Guid SellerId, Guid ProductVariantId, string ProductName, int Quantity, Money UnitPrice)> lineItems,
-        PaymentMethod paymentMethod = PaymentMethod.Card)
+        PaymentMethod paymentMethod = PaymentMethod.Card,
+        decimal deliveryFee = 0)
     {
-        var order = new Order(Guid.NewGuid(), customerId, shippingAddress, paymentMethod);
+        if (deliveryFee < 0)
+            throw new ArgumentOutOfRangeException(nameof(deliveryFee), "Delivery fee can't be negative.");
+
+        var order = new Order(Guid.NewGuid(), customerId, shippingAddress, paymentMethod, deliveryFee);
 
         var groupedBySeller = lineItems.GroupBy(li => li.SellerId);
 

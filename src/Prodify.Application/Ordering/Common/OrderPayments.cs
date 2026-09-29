@@ -15,10 +15,11 @@ public static class OrderPayments
         if (order.PaymentMethod != PaymentMethod.PayOnDelivery || order.IsPaid || order.Status != OrderStatus.Delivered)
             return;
 
+        // The delivered parts plus the delivery fee.
         var collected = order.SellerOrders
             .Where(so => so.Status == SellerOrderStatus.Delivered)
             .Select(so => so.Total)
-            .Aggregate(Money.Zero(), (sum, next) => sum.Add(next));
+            .Aggregate(Money.Create(order.DeliveryFee), (sum, next) => sum.Add(next));
 
         var payment = Payment.Create(order.Id, collected);
         var attempt = payment.StartAttempt();

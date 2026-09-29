@@ -65,6 +65,9 @@ using (var scope = app.Services.CreateScope())
     var identitySeeder = scope.ServiceProvider.GetRequiredService<IdentitySeeder>();
     await identitySeeder.SeedAsync();
 
+    var deliveryFeeSeeder = scope.ServiceProvider.GetRequiredService<DeliveryFeeSeeder>();
+    await deliveryFeeSeeder.SeedAsync();
+
     var demoCatalogSeeder = scope.ServiceProvider.GetRequiredService<DemoCatalogSeeder>();
     await demoCatalogSeeder.SeedAsync();
 }

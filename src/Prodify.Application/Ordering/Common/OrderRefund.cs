@@ -9,9 +9,16 @@ namespace Prodify.Application.Ordering.Common;
 
 public static class OrderRefunds
 {
-    // Adds up what the given parts of an order cost, e.g. the parts being cancelled.
-    public static decimal TotalOf(IEnumerable<SellerOrder> sellerOrders) =>
-        sellerOrders.Sum(so => so.Total.Amount);
+    // What to send back when these parts are cancelled: their items, plus the
+    // delivery fee if nothing else in the order is left to deliver.
+    // Call it before the parts are marked as cancelled.
+    public static decimal RefundFor(Order order, IReadOnlyCollection<SellerOrder> cancelling)
+    {
+        var items = cancelling.Sum(so => so.Total.Amount);
+        var nothingLeft = order.SellerOrders.All(so => cancelling.Contains(so) || so.Status == SellerOrderStatus.Cancelled);
+
+        return nothingLeft ? items + order.DeliveryFee : items;
+    }
 
     // Card orders that were paid get the money for cancelled parts sent back.
     // Unpaid orders and pay-on-delivery orders (paid only once delivered) have nothing to refund.

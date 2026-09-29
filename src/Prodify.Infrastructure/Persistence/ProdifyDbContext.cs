@@ -54,10 +54,10 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
 
     // Shipping
     public DbSet<Shipment> Shipments => Set<Shipment>();
+    public DbSet<DeliveryFee> DeliveryFees => Set<DeliveryFee>();
 
     // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
-
     // Identity
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
@@ -77,6 +77,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Seller> IApplicationDbContext.Sellers => Sellers;
     IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
     IQueryable<Domain.Shipping.Entities.Shipment> IApplicationDbContext.Shipments => Shipments;
+    IQueryable<DeliveryFee> IApplicationDbContext.DeliveryFees => DeliveryFees;
     IQueryable<SellerOrder> IApplicationDbContext.SellerOrders => SellerOrders;
     public new void Add<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Add(entity);
     public new void Remove<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Remove(entity);
