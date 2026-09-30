@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Cart.Common;
+using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
@@ -8,7 +9,6 @@ using Prodify.Domain.Inventory.Entities;
 using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Ordering.ValueObjects;
 using Prodify.Application.Shipping.DeliveryFees;
-
 
 namespace Prodify.Application.Ordering.Commands.PlaceOrder;
 
@@ -19,11 +19,13 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
 
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly OrderEmailSender _orderEmails;
 
-    public PlaceOrderCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+    public PlaceOrderCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, OrderEmailSender orderEmails)
     {
         _context = context;
         _currentUser = currentUser;
+        _orderEmails = orderEmails;
     }
 
     public async Task<Guid> Handle(PlaceOrderCommand request, CancellationToken cancellationToken)
@@ -87,6 +89,10 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
         }
 
         cart.Clear();
+
+        // Card orders are confirmed by email once they're paid.
+        if (paymentMethod == PaymentMethod.PayOnDelivery)
+            await _orderEmails.OrderConfirmedAsync(order, cancellationToken);
 
         return order.Id;
     }

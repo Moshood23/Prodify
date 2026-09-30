@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Ordering.Commands.PlaceOrder;
 using Prodify.Application.Ordering.Common;
@@ -15,10 +16,12 @@ public class CancelUnpaidOrdersCommandHandler : IRequestHandler<CancelUnpaidOrde
     private const int BatchSize = 100;
 
     private readonly IApplicationDbContext _context;
+    private readonly OrderEmailSender _orderEmails;
 
-    public CancelUnpaidOrdersCommandHandler(IApplicationDbContext context)
+    public CancelUnpaidOrdersCommandHandler(IApplicationDbContext context, OrderEmailSender orderEmails)
     {
         _context = context;
+        _orderEmails = orderEmails;
     }
 
     public async Task<int> Handle(CancelUnpaidOrdersCommand request, CancellationToken cancellationToken)
@@ -28,6 +31,8 @@ public class CancelUnpaidOrdersCommandHandler : IRequestHandler<CancelUnpaidOrde
         var orders = await _context.Orders
             .Include(o => o.SellerOrders)
                 .ThenInclude(so => so.StatusHistory)
+            .Include(o => o.SellerOrders)
+                .ThenInclude(so => so.Items)
             .Where(o => o.PaymentMethod == PaymentMethod.Card
                 && !o.IsPaid
                 && o.CreatedAt <= cutoff
@@ -41,8 +46,12 @@ public class CancelUnpaidOrdersCommandHandler : IRequestHandler<CancelUnpaidOrde
 
         foreach (var order in orders)
         {
+            var cancelling = order.SellerOrders.Where(OrderRules.IsStoppable).ToList();
             order.Cancel(Reason);
             await _context.ReleaseOrderStockAsync(order.Id, cancellationToken);
+
+            // Nothing was paid and sellers never saw the order, so only the customer is told.
+            await _orderEmails.PartsCancelledAsync(order, cancelling, Reason, refunded: 0, tellSellers: false, cancellationToken);
         }
 
         return orders.Count;

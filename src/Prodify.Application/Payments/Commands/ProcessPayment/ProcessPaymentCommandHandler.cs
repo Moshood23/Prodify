@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
@@ -14,12 +15,14 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly IPaymentService _paymentService;
+    private readonly OrderEmailSender _orderEmails;
 
-    public ProcessPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService, ICurrentUserService currentUser)
+    public ProcessPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService, ICurrentUserService currentUser, OrderEmailSender orderEmails)
     {
         _context = context;
         _currentUser = currentUser;
         _paymentService = paymentService;
+        _orderEmails = orderEmails;
     }
 
     public async Task<Guid> Handle(ProcessPaymentCommand request, CancellationToken cancellationToken)
@@ -45,6 +48,7 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
             payment.CompleteAttempt(attempt.Id, result.GatewayReference!);
             order.MarkAsPaid(payment.Id);
             await _context.ConfirmOrderStockAsync(order.Id, cancellationToken);
+            await _orderEmails.OrderConfirmedAsync(order, cancellationToken);
         }
         else
         {

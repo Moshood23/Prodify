@@ -22,7 +22,8 @@ public static class OrderRefunds
 
     // Card orders that were paid get the money for cancelled parts sent back.
     // Unpaid orders and pay-on-delivery orders (paid only once delivered) have nothing to refund.
-    public static async Task RefundIfPaidAsync(
+    // Returns how much was refunded (0 if nothing).
+    public static async Task<decimal> RefundIfPaidAsync(
         this IApplicationDbContext context,
         IPaymentService paymentService,
         Order order,
@@ -30,7 +31,7 @@ public static class OrderRefunds
         CancellationToken cancellationToken)
     {
         if (!order.IsPaid || order.PaymentMethod != PaymentMethod.Card || amount <= 0)
-            return;
+            return 0;
 
         var payment = await context.Payments
             .Include(p => p.Attempts)
@@ -44,12 +45,13 @@ public static class OrderRefunds
         // Never send back more than is left on the payment.
         var refund = Math.Min(amount, payment.Amount.Amount - payment.RefundedAmount);
         if (refund <= 0)
-            return;
+            return 0;
 
         var result = await paymentService.RefundAsync(payment.GatewayReference, Money.Create(refund), cancellationToken);
         if (!result.Succeeded)
             throw new BusinessRuleException($"The refund failed: {result.FailureReason ?? "unknown error"}. Nothing was cancelled.");
 
         payment.RecordRefund(refund);
+        return refund;
     }
 }
