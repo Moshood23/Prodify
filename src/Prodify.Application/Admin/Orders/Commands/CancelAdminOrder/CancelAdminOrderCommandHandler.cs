@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Ordering.Common;
@@ -10,11 +11,13 @@ public class CancelAdminOrderCommandHandler : IRequestHandler<CancelAdminOrderCo
 {
     private readonly IApplicationDbContext _context;
     private readonly IPaymentService _paymentService;
+    private readonly OrderEmailSender _orderEmails;
 
-    public CancelAdminOrderCommandHandler(IApplicationDbContext context, IPaymentService paymentService)
+    public CancelAdminOrderCommandHandler(IApplicationDbContext context, IPaymentService paymentService, OrderEmailSender orderEmails)
     {
         _context = context;
         _paymentService = paymentService;
+        _orderEmails = orderEmails;
     }
 
     public async Task Handle(CancelAdminOrderCommand request, CancellationToken cancellationToken)
@@ -33,10 +36,11 @@ public class CancelAdminOrderCommandHandler : IRequestHandler<CancelAdminOrderCo
 
         var cancelling = order.SellerOrders.Where(OrderRules.IsStoppable).ToList();
         // Refund first: if the gateway says no, nothing is cancelled.
-        var refund = OrderRefunds.RefundFor(order, cancelling);
-        await _context.RefundIfPaidAsync(_paymentService, order, refund, cancellationToken);
+        var refunded = await _context.RefundIfPaidAsync(_paymentService, order, OrderRefunds.RefundFor(order, cancelling), cancellationToken);
 
         order.Cancel(request.Reason.Trim());
         await _context.ReleaseOrderStockAsync(order.Id, cancellationToken);
+
+        await _orderEmails.PartsCancelledAsync(order, cancelling, request.Reason.Trim(), refunded, tellSellers: true, cancellationToken);
     }
 }

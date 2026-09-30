@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
@@ -13,12 +14,14 @@ public class RetryPaymentCommandHandler : IRequestHandler<RetryPaymentCommand>
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly IPaymentService _paymentService;
+    private readonly OrderEmailSender _orderEmails;
 
-    public RetryPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService, ICurrentUserService currentUser)
+    public RetryPaymentCommandHandler(IApplicationDbContext context, IPaymentService paymentService, ICurrentUserService currentUser, OrderEmailSender orderEmails)
     {
         _context = context;
         _currentUser = currentUser;
         _paymentService = paymentService;
+        _orderEmails = orderEmails;
     }
 
     public async Task Handle(RetryPaymentCommand request, CancellationToken cancellationToken)
@@ -30,6 +33,7 @@ public class RetryPaymentCommandHandler : IRequestHandler<RetryPaymentCommand>
             throw new NotFoundException("Payment", request.PaymentId);
 
         var order = await _context.Orders
+            .Include(o => o.Items)
             .Include(o => o.SellerOrders)
             .FirstOrDefaultAsync(o => o.Id == payment.OrderId, cancellationToken);
 
@@ -46,6 +50,7 @@ public class RetryPaymentCommandHandler : IRequestHandler<RetryPaymentCommand>
             payment.CompleteAttempt(attempt.Id, result.GatewayReference!);
             order.MarkAsPaid(payment.Id);
             await _context.ConfirmOrderStockAsync(order.Id, cancellationToken);
+            await _orderEmails.OrderConfirmedAsync(order, cancellationToken);
         }
         else
         {

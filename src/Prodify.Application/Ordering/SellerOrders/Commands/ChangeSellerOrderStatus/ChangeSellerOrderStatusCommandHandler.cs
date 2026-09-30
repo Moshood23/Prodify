@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Ordering.Common;
@@ -14,12 +15,15 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly IPaymentService _paymentService;
+    private readonly OrderEmailSender _orderEmails;
 
-    public ChangeSellerOrderStatusCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, IPaymentService paymentService)
+    public ChangeSellerOrderStatusCommandHandler(
+        IApplicationDbContext context, ICurrentUserService currentUser, IPaymentService paymentService, OrderEmailSender orderEmails)
     {
         _context = context;
         _currentUser = currentUser;
         _paymentService = paymentService;
+        _orderEmails = orderEmails;
     }
 
     public async Task Handle(ChangeSellerOrderStatusCommand request, CancellationToken cancellationToken)
@@ -42,23 +46,28 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
             case SellerOrderStatus.Shipped:
                 Ensure(SellerOrderRules.CanShip(sellerOrder), sellerOrder, "shipped");
                 await ShipAsync(sellerOrder, request.Carrier!, request.TrackingNumber, cancellationToken);
+                await _orderEmails.PartShippedAsync(order, sellerOrder, request.Carrier!, request.TrackingNumber, cancellationToken);
                 break;
 
             case SellerOrderStatus.Delivered:
                 Ensure(SellerOrderRules.CanDeliver(sellerOrder), sellerOrder, "marked as delivered");
                 await MarkShipmentDeliveredAsync(sellerOrder.Id, cancellationToken);
                 order.MarkSellerOrderDelivered(sellerOrder.Id);
+                await _orderEmails.PartDeliveredAsync(order, sellerOrder, cancellationToken);
                 break;
 
             case SellerOrderStatus.Cancelled:
                 Ensure(SellerOrderRules.CanCancel(sellerOrder), sellerOrder, "cancelled");
 
                 // The customer gets this part's money back (refund first: if it fails, nothing changes).
-                await _context.RefundIfPaidAsync(_paymentService, order, OrderRefunds.RefundFor(order, new[] { sellerOrder }), cancellationToken);
+                var refunded = await _context.RefundIfPaidAsync(_paymentService, order, OrderRefunds.RefundFor(order, new[] { sellerOrder }), cancellationToken);
                 sellerOrder.TransitionTo(SellerOrderStatus.Cancelled, request.Reason!.Trim());
 
                 var variantIds = sellerOrder.Items.Select(i => i.ProductVariantId).ToList();
                 await _context.ReleaseSellerOrderStockAsync(order.Id, variantIds, cancellationToken);
+
+                // The seller did this themselves, so only the customer is told.
+                await _orderEmails.PartsCancelledAsync(order, new[] { sellerOrder }, request.Reason!.Trim(), refunded, tellSellers: false, cancellationToken);
                 break;
         }
 

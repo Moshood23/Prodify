@@ -93,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.Configure<EmailSettings>(configuration.GetSection("Email"));
         services.AddScoped<IEmailQueue, EmailQueue>();
+        services.AddScoped<Prodify.Application.Common.Emails.OrderEmailSender>();
         services.AddSingleton<IAppUrls, AppUrls>();
         if (string.Equals(configuration["Email:Mode"], "Smtp", StringComparison.OrdinalIgnoreCase))
             services.AddScoped<IEmailTransport, SmtpEmailTransport>();
