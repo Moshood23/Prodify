@@ -56,6 +56,8 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<DeliveryFee> DeliveryFees => Set<DeliveryFee>();
 
+    public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
+
     // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<Prodify.Infrastructure.Email.EmailMessage> EmailMessages => Set<Prodify.Infrastructure.Email.EmailMessage>();
@@ -79,6 +81,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
     IQueryable<Domain.Shipping.Entities.Shipment> IApplicationDbContext.Shipments => Shipments;
     IQueryable<DeliveryFee> IApplicationDbContext.DeliveryFees => DeliveryFees;
+    IQueryable<ProductReview> IApplicationDbContext.ProductReviews => ProductReviews;
     IQueryable<SellerOrder> IApplicationDbContext.SellerOrders => SellerOrders;
     public new void Add<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Add(entity);
     public new void Remove<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Remove(entity);

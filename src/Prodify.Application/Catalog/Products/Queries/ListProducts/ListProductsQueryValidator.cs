@@ -4,8 +4,7 @@ namespace Prodify.Application.Catalog.Products.Queries.ListProducts;
 
 public class ListProductsQueryValidator : AbstractValidator<ListProductsQuery>
 {
-    public static readonly string[] SortOptions = { "newest", "price_asc", "price_desc", "name" };
-
+    public static readonly string[] SortOptions = { "newest", "price_asc", "price_desc", "name", "rating" };
     public ListProductsQueryValidator()
     {
         RuleFor(x => x.Search)

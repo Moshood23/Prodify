@@ -70,6 +70,8 @@ using (var scope = app.Services.CreateScope())
 
     var demoCatalogSeeder = scope.ServiceProvider.GetRequiredService<DemoCatalogSeeder>();
     await demoCatalogSeeder.SeedAsync();
+    var demoReviewSeeder = scope.ServiceProvider.GetRequiredService<DemoReviewSeeder>();
+    await demoReviewSeeder.SeedAsync();
 }
 app.UseMiddleware<Prodify.Api.Middleware.CorrelationIdMiddleware>();
 app.UseMiddleware<Prodify.Api.Middleware.ExceptionHandlingMiddleware>();

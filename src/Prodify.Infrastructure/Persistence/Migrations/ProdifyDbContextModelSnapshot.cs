@@ -390,6 +390,69 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                     b.ToTable("ProductImages", (string)null);
                 });
 
+            modelBuilder.Entity("Prodify.Domain.Catalog.Entities.ProductReview", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("Comment")
+                    .HasMaxLength(2000)
+                    .HasColumnType("nvarchar(2000)");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("CustomerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("HiddenReason")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
+
+                b.Property<bool>("IsHidden")
+                    .HasColumnType("bit");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("ProductId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<int>("Rating")
+                    .HasColumnType("int");
+
+                b.Property<string>("ReviewerName")
+                    .IsRequired()
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
+
+                b.Property<string>("Title")
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ProductId", "CustomerId")
+                    .IsUnique();
+
+                b.ToTable("ProductReviews", (string)null);
+
+                b.HasOne("Prodify.Domain.Catalog.Entities.Product", null)
+                    .WithMany()
+                    .HasForeignKey("ProductId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+
             modelBuilder.Entity("Prodify.Domain.Catalog.Entities.ProductVariant", b =>
                 {
                     b.Property<Guid>("Id")

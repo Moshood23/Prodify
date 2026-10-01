@@ -16,6 +16,8 @@ using Prodify.Application.Catalog.Products.Queries.GetProduct;
 using Prodify.Application.Catalog.Products.Queries.ListManagedProducts;
 using Prodify.Application.Catalog.Products.Queries.ListProducts;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Catalog.Reviews.Commands.SubmitReview;
+using Prodify.Application.Catalog.Reviews.Queries.GetProductReviews;
 using Prodify.Application.Catalog.Products.Commands.ReorderProductImages;
 using Prodify.Application.Catalog.Products.Commands.UploadProductImage;
 using Prodify.Api.Models;
@@ -48,6 +50,27 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(new GetProductQuery { Id = id }, cancellationToken);
         return Ok(result);
     }
+
+    // ---- Reviews ----
+
+    // Anyone can read reviews; logged-in customers also get their own review and whether they can write one.
+    [HttpGet("{id:guid}/reviews")]
+    public async Task<IActionResult> Reviews(Guid id, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(new GetProductReviewsQuery { ProductId = id, PageNumber = pageNumber, PageSize = pageSize }, cancellationToken);
+        return Ok(result);
+    }
+
+    // Writes or updates the customer's review. Only after an order with the product was delivered.
+    [Authorize(Roles = Roles.Customer)]
+    [HttpPost("{id:guid}/reviews")]
+    public async Task<IActionResult> SubmitReview(Guid id, SubmitReviewCommand command, CancellationToken cancellationToken)
+    {
+        command.ProductId = id;
+        var reviewId = await _mediator.Send(command, cancellationToken);
+        return Ok(reviewId);
+    }
+
 
     // Sellers get their own products; admins pass ?sellerId=.
     [Authorize(Roles = Roles.SellerOrAdmin)]

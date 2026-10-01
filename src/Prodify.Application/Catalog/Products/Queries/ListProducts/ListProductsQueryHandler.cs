@@ -65,6 +65,12 @@ public class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, Pagin
             "price_asc" => priced.OrderBy(x => x.Price).ThenBy(x => x.Product.Name),
             "price_desc" => priced.OrderByDescending(x => x.Price).ThenBy(x => x.Product.Name),
             "name" => priced.OrderBy(x => x.Product.Name),
+            "rating" => priced
+                .OrderByDescending(x => _context.ProductReviews
+                    .Where(r => r.ProductId == x.Product.Id && !r.IsHidden)
+                    .Average(r => (double?)r.Rating) ?? 0)
+                .ThenByDescending(x => _context.ProductReviews.Count(r => r.ProductId == x.Product.Id && !r.IsHidden))
+                .ThenBy(x => x.Product.Name),
             _ => priced.OrderByDescending(x => x.Product.CreatedAt).ThenBy(x => x.Product.Id)
         };
 
@@ -108,11 +114,18 @@ public class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, Pagin
                     .FirstOrDefault(),
                 VariantCount = _context.ProductVariants
                     .Count(v => v.ProductId == x.Product.Id && v.IsActive == true),
+                Rating = (decimal?)_context.ProductReviews
+                    .Where(r => r.ProductId == x.Product.Id && !r.IsHidden)
+                    .Average(r => (double?)r.Rating),
+                ReviewCount = _context.ProductReviews.Count(r => r.ProductId == x.Product.Id && !r.IsHidden),
                 CreatedAt = x.Product.CreatedAt
             })
             .ToListAsync(cancellationToken);
 
         await SetStockAsync(items, cancellationToken);
+
+        foreach (var item in items)
+            item.Rating = item.Rating is { } rating ? Math.Round(rating, 1) : null;
 
         return new PaginatedList<ProductSummaryDto>(items, totalCount, request.PageNumber, request.PageSize);
     }

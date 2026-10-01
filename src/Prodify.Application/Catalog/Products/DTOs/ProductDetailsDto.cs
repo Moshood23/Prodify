@@ -14,6 +14,9 @@ public class ProductDetailsDto
     public Guid SellerId { get; set; }
     public string SellerName { get; set; } = null!;
 
+    public decimal? Rating { get; set; }
+    public int ReviewCount { get; set; }
+
     public List<ProductImageDto> Images { get; set; } = new();
     public List<ProductVariantDto> Variants { get; set; } = new();
     public List<ProductAttributeDto> Attributes { get; set; } = new();

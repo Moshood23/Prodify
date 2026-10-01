@@ -16,9 +16,8 @@ public class ProductSummaryDto
     public decimal? CompareAtPrice { get; set; }
 
     public string? ImageUrl { get; set; }
-
-    // The cheapest variant, so "Add to cart" works straight from the card
-    // when the product has a single variant.
+    public decimal? Rating { get; set; }
+    public int ReviewCount { get; set; }
     public Guid DefaultVariantId { get; set; }
     public int VariantCount { get; set; }
     public bool InStock { get; set; }
