@@ -45,6 +45,10 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductDe
                     .Where(s => s.Id == p.SellerId)
                     .Select(s => s.BusinessName)
                     .FirstOrDefault() ?? "",
+                Rating = (decimal?)_context.ProductReviews
+                    .Where(r => r.ProductId == p.Id && !r.IsHidden)
+                    .Average(r => (double?)r.Rating),
+                ReviewCount = _context.ProductReviews.Count(r => r.ProductId == p.Id && !r.IsHidden),
                 Images = p.Images
                     .OrderBy(i => i.DisplayOrder)
                     .Select(i => new ProductImageDto
@@ -93,6 +97,9 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductDe
                 AvailableQuantity = stock.GetValueOrDefault(v.Id)
             })
             .ToList();
+
+        product.Rating = product.Rating is { } rating ? Math.Round(rating, 1) : null;
+
 
         return product;
     }

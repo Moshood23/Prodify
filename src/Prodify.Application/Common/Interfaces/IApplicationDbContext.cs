@@ -35,6 +35,8 @@ public interface IApplicationDbContext
 
     IQueryable<Domain.Shipping.Entities.DeliveryFee> DeliveryFees { get; }
 
+    IQueryable<ProductReview> ProductReviews { get; }
+
     IQueryable<Notification> Notifications { get; }
 
     void Add<TEntity>(TEntity entity) where TEntity : class;
