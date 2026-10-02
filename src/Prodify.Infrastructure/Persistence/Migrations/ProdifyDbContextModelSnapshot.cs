@@ -618,6 +618,47 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                     b.ToTable("CustomerAddresses", (string)null);
                 });
 
+            modelBuilder.Entity("Prodify.Domain.Customers.Entities.WishlistItem", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("CustomerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("ProductId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ProductId");
+
+                b.HasIndex("CustomerId", "ProductId")
+                    .IsUnique();
+
+                b.ToTable("WishlistItems", (string)null);
+
+                b.HasOne("Prodify.Domain.Catalog.Entities.Product", null)
+                    .WithMany()
+                    .HasForeignKey("ProductId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
             modelBuilder.Entity("Prodify.Domain.Inventory.Entities.InventoryItem", b =>
                 {
                     b.Property<Guid>("Id")

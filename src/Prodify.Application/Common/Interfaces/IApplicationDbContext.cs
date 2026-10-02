@@ -37,6 +37,8 @@ public interface IApplicationDbContext
 
     IQueryable<ProductReview> ProductReviews { get; }
 
+    IQueryable<WishlistItem> WishlistItems { get; }
+
     IQueryable<Notification> Notifications { get; }
 
     void Add<TEntity>(TEntity entity) where TEntity : class;

@@ -36,6 +36,15 @@ public class GetSellerQueryHandler : IRequestHandler<GetSellerQuery, PublicSelle
             .WherePubliclyVisible(_context)
             .CountAsync(cancellationToken);
 
+        var ratings = await _context.ProductReviews
+    .Where(r => !r.IsHidden && _context.Products.Any(p => p.Id == r.ProductId && p.SellerId == seller.Id))
+    .GroupBy(r => 1)
+    .Select(g => new { Count = g.Count(), Average = g.Average(r => (double)r.Rating) })
+    .FirstOrDefaultAsync(cancellationToken);
+
+        seller.ReviewCount = ratings?.Count ?? 0;
+        seller.Rating = ratings is null ? null : Math.Round((decimal)ratings.Average, 1);
+
         return seller;
     }
 }

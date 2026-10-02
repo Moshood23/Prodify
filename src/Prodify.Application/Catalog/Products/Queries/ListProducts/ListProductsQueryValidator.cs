@@ -29,6 +29,11 @@ public class ListProductsQueryValidator : AbstractValidator<ListProductsQuery>
             .When(x => !string.IsNullOrWhiteSpace(x.Sort))
             .WithMessage($"Sort must be one of: {string.Join(", ", SortOptions)}.");
 
+        RuleFor(x => x.Ids)
+    .Must(ids => ids!.Count <= 60)
+    .When(x => x.Ids is not null)
+    .WithMessage("Ask for at most 60 products at a time.");
+
         RuleFor(x => x.PageNumber)
             .GreaterThanOrEqualTo(1);
 

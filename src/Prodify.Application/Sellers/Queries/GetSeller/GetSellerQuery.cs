@@ -15,4 +15,6 @@ public class PublicSellerDto
     public string? Description { get; set; }
     public DateTime JoinedAt { get; set; }
     public int ProductCount { get; set; }
+    public decimal? Rating { get; set; }
+    public int ReviewCount { get; set; }
 }

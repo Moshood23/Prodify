@@ -36,6 +36,9 @@ public class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, Pagin
         if (request.SellerId.HasValue)
             products = products.Where(p => p.SellerId == request.SellerId.Value);
 
+        if (request.Ids is { Count: > 0 })
+            products = products.Where(p => request.Ids.Contains(p.Id));
+
         // Every word must match the product name, its brand or its category ("samsung phone").
         foreach (var term in SplitSearch(request.Search))
         {
