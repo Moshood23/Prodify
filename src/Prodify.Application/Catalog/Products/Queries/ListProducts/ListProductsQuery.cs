@@ -14,6 +14,8 @@ public class ListProductsQuery : IRequest<PaginatedList<ProductSummaryDto>>
     public Guid? BrandId { get; set; }
     public Guid? SellerId { get; set; }
 
+    public List<Guid>? Ids { get; set; }
+
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
 
