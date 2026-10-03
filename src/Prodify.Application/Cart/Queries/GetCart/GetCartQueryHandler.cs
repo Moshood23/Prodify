@@ -32,40 +32,7 @@ public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartDto>
         var variants = await _context.GetCartVariantsAsync(
             cart.Items.Select(i => i.ProductVariantId).ToList(), cancellationToken);
 
-        var items = cart.Items
-            .Select(item =>
-            {
-                variants.TryGetValue(item.ProductVariantId, out var variant);
-                var unitPrice = variant?.Price ?? item.UnitPrice;
-                var isAvailable = variant?.IsAvailable ?? false;
-
-                return new CartItemDto
-                {
-                    Id = item.Id,
-                    ProductVariantId = item.ProductVariantId,
-                    ProductId = variant?.ProductId ?? Guid.Empty,
-                    ProductName = variant?.ProductName ?? "Product no longer available",
-                    VariantName = variant?.VariantName,
-                    ImageUrl = variant?.ImageUrl,
-                    Quantity = item.Quantity,
-                    UnitPrice = unitPrice,
-                    Subtotal = unitPrice * item.Quantity,
-                    AvailableQuantity = variant?.AvailableQuantity ?? 0,
-                    IsAvailable = isAvailable,
-                    InStock = isAvailable && (variant?.AvailableQuantity ?? 0) >= item.Quantity
-                };
-            })
-            .OrderBy(i => i.ProductName)
-            .ToList();
-
-        return new CartDto
-        {
-            Id = cart.Id,
-            Items = items,
-            ItemCount = items.Sum(i => i.Quantity),
-            // Items that can't be bought don't count towards what the customer will pay.
-            Total = items.Where(i => i.IsAvailable).Sum(i => i.Subtotal),
-            HasProblems = items.Any(i => !i.InStock)
-        };
+        var lines = cart.Items.Select(i => new CartLine(i.Id, i.ProductVariantId, i.Quantity, i.UnitPrice));
+        return CartPricing.Build(cart.Id, lines, variants);
     }
 }
