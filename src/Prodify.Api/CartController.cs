@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Cart.Commands.AddToCart;
+using Prodify.Application.Cart.Commands.MergeGuestCart;
 using Prodify.Application.Cart.Commands.RemoveCartItem;
 using Prodify.Application.Cart.Commands.UpdateCartItemQuantity;
 using Prodify.Application.Cart.Queries.GetCart;
+using Prodify.Application.Cart.Queries.PreviewCart;
 using Prodify.Application.Common.Security;
 
 namespace Prodify.Api.Controllers;
@@ -34,6 +36,24 @@ public class CartController : ControllerBase
         var result = await _mediator.Send(new GetCartQuery(), cancellationToken);
         return Ok(result);
     }
+
+    // A guest's cart lives in their browser; this prices it so the cart page can show it.
+    [AllowAnonymous]
+    [HttpPost("preview")]
+    public async Task<IActionResult> Preview(PreviewCartQuery query, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+
+    // After logging in, moves the guest cart into the account cart.
+    [HttpPost("merge")]
+    public async Task<IActionResult> Merge(MergeGuestCartCommand command, CancellationToken cancellationToken)
+    {
+        var notes = await _mediator.Send(command, cancellationToken);
+        return Ok(new { notes });
+    }
+
 
     [HttpPut("items/{cartItemId:guid}")]
     public async Task<IActionResult> UpdateItemQuantity(Guid cartItemId, UpdateCartItemQuantityRequest request, CancellationToken cancellationToken)
