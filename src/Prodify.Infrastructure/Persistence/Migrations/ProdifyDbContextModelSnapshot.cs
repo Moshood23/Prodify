@@ -1094,6 +1094,212 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                     b.ToTable("PaymentAttempts", (string)null);
                 });
 
+            modelBuilder.Entity("Prodify.Domain.Payouts.Entities.PayoutAccount", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("AccountName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
+
+                b.Property<string>("AccountNumber")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
+
+                b.Property<string>("BankName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("SellerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.HasKey("Id");
+
+                b.HasIndex("SellerId")
+                    .IsUnique();
+
+                b.ToTable("PayoutAccounts", (string)null);
+
+                b.HasOne("Prodify.Domain.Sellers.Entities.Seller", null)
+                    .WithMany()
+                    .HasForeignKey("SellerId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+            modelBuilder.Entity("Prodify.Domain.Payouts.Entities.PlatformSettings", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<decimal>("CommissionRate")
+                    .HasColumnType("decimal(5,2)");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.HasKey("Id");
+
+                b.ToTable("PlatformSettings", (string)null);
+            });
+
+            modelBuilder.Entity("Prodify.Domain.Payouts.Entities.SellerEarning", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<DateTime>("AvailableAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<decimal>("Commission")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<decimal>("CommissionRate")
+                    .HasColumnType("decimal(5,2)");
+
+                b.Property<DateTime>("EarnedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<decimal>("NetAmount")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<Guid>("OrderId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<decimal>("Sales")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<Guid>("SellerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<Guid>("SellerOrderId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.HasKey("Id");
+
+                b.HasIndex("SellerOrderId")
+                    .IsUnique();
+
+                b.HasIndex("SellerId", "AvailableAt");
+
+                b.ToTable("SellerEarnings", (string)null);
+
+                b.HasOne("Prodify.Domain.Sellers.Entities.Seller", null)
+                    .WithMany()
+                    .HasForeignKey("SellerId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.HasOne("Prodify.Domain.Ordering.Entities.SellerOrder", null)
+                    .WithMany()
+                    .HasForeignKey("SellerOrderId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+            });
+
+            modelBuilder.Entity("Prodify.Domain.Payouts.Entities.SellerPayout", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("AccountName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
+
+                b.Property<string>("AccountNumber")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
+
+                b.Property<decimal>("Amount")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<string>("BankName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<DateTime?>("ProcessedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("Reference")
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
+
+                b.Property<string>("RejectReason")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
+
+                b.Property<Guid>("SellerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("Status")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("SellerId")
+                    .IsUnique()
+                    .HasDatabaseName("IX_SellerPayouts_SellerId_OpenRequest")
+                    .HasFilter("[Status] = 'Requested'");
+
+                b.HasIndex("Status", "CreatedAt");
+
+                b.ToTable("SellerPayouts", (string)null);
+
+                b.HasOne("Prodify.Domain.Sellers.Entities.Seller", null)
+                    .WithMany()
+                    .HasForeignKey("SellerId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+            });
+
             modelBuilder.Entity("Prodify.Domain.Sellers.Entities.Seller", b =>
                 {
                     b.Property<Guid>("Id")

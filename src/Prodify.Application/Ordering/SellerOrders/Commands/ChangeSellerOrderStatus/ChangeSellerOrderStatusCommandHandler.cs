@@ -5,6 +5,7 @@ using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Ordering.Common;
 using Prodify.Application.Ordering.SellerOrders.Common;
+using Prodify.Application.Payouts.Common;
 using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Shipping.Entities;
 
@@ -53,6 +54,7 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
                 Ensure(SellerOrderRules.CanDeliver(sellerOrder), sellerOrder, "marked as delivered");
                 await MarkShipmentDeliveredAsync(sellerOrder.Id, cancellationToken);
                 order.MarkSellerOrderDelivered(sellerOrder.Id);
+                await _context.RecordEarningAsync(order.Id, sellerOrder, cancellationToken);
                 await _orderEmails.PartDeliveredAsync(order, sellerOrder, cancellationToken);
                 break;
 

@@ -59,6 +59,12 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
+    // Payouts
+    public DbSet<Domain.Payouts.Entities.PlatformSettings> PlatformSettings => Set<Domain.Payouts.Entities.PlatformSettings>();
+    public DbSet<Domain.Payouts.Entities.SellerEarning> SellerEarnings => Set<Domain.Payouts.Entities.SellerEarning>();
+    public DbSet<Domain.Payouts.Entities.PayoutAccount> PayoutAccounts => Set<Domain.Payouts.Entities.PayoutAccount>();
+    public DbSet<Domain.Payouts.Entities.SellerPayout> SellerPayouts => Set<Domain.Payouts.Entities.SellerPayout>();
+
     // Messaging
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<Prodify.Infrastructure.Email.EmailMessage> EmailMessages => Set<Prodify.Infrastructure.Email.EmailMessage>();
@@ -84,6 +90,10 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<DeliveryFee> IApplicationDbContext.DeliveryFees => DeliveryFees;
     IQueryable<ProductReview> IApplicationDbContext.ProductReviews => ProductReviews;
     IQueryable<WishlistItem> IApplicationDbContext.WishlistItems => WishlistItems;
+    IQueryable<Domain.Payouts.Entities.PlatformSettings> IApplicationDbContext.PlatformSettings => PlatformSettings;
+    IQueryable<Domain.Payouts.Entities.SellerEarning> IApplicationDbContext.SellerEarnings => SellerEarnings;
+    IQueryable<Domain.Payouts.Entities.PayoutAccount> IApplicationDbContext.PayoutAccounts => PayoutAccounts;
+    IQueryable<Domain.Payouts.Entities.SellerPayout> IApplicationDbContext.SellerPayouts => SellerPayouts;
     IQueryable<SellerOrder> IApplicationDbContext.SellerOrders => SellerOrders;
     public new void Add<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Add(entity);
     public new void Remove<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Remove(entity);
