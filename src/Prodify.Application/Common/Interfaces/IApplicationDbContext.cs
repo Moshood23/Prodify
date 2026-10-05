@@ -39,6 +39,11 @@ public interface IApplicationDbContext
 
     IQueryable<WishlistItem> WishlistItems { get; }
 
+    IQueryable<Domain.Payouts.Entities.PlatformSettings> PlatformSettings { get; }
+    IQueryable<Domain.Payouts.Entities.SellerEarning> SellerEarnings { get; }
+    IQueryable<Domain.Payouts.Entities.PayoutAccount> PayoutAccounts { get; }
+    IQueryable<Domain.Payouts.Entities.SellerPayout> SellerPayouts { get; }
+
     IQueryable<Notification> Notifications { get; }
 
     void Add<TEntity>(TEntity entity) where TEntity : class;
