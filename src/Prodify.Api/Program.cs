@@ -5,6 +5,8 @@ using Prodify.Infrastructure.Persistence.Seed;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Prodify.Infrastructure.Storage;
+using Microsoft.AspNetCore.HttpOverrides;
+using Prodify.Api.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,17 +43,38 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks()
     .AddCheck<Prodify.Api.HealthChecks.DatabaseHealthCheck>("database");
 
+// The websites allowed to call the API, from settings (Cors:AllowedOrigins).
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
+builder.Services.AddProdifyRateLimiting(builder.Configuration);
+
+// JSON requests are small; the photo upload endpoint allows more with its own [RequestSizeLimit].
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1024 * 1024);
+
+// Behind a hosting provider's proxy, the visitor's real IP and https arrive in X-Forwarded-* headers.
+// Only switch this on when the API can be reached through that proxy alone.
+var behindProxy = builder.Configuration.GetValue("ReverseProxy:Enabled", false);
+if (behindProxy)
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
+ProductionSettings.Check(builder.Configuration, builder.Environment);
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -73,6 +96,11 @@ using (var scope = app.Services.CreateScope())
     var demoReviewSeeder = scope.ServiceProvider.GetRequiredService<DemoReviewSeeder>();
     await demoReviewSeeder.SeedAsync();
 }
+
+if (behindProxy)
+    app.UseForwardedHeaders();
+
+app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<Prodify.Api.Middleware.CorrelationIdMiddleware>();
 app.UseMiddleware<Prodify.Api.Middleware.ExceptionHandlingMiddleware>();
 
@@ -97,8 +125,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (!app.Environment.IsDevelopment())
+    app.UseHsts();
+
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

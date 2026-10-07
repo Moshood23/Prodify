@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Prodify.Api.Security;
 using Prodify.Application.Identity.Commands.Login;
 using Prodify.Application.Identity.Commands.Logout;
 using Prodify.Application.Identity.Commands.RefreshToken;
@@ -22,6 +24,7 @@ public class AuthController : ControllerBase
         _mediator = mediator;
     }
 
+    [EnableRateLimiting(RateLimiting.AuthPolicy)]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterCommand command, CancellationToken cancellationToken)
     {
@@ -29,6 +32,7 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [EnableRateLimiting(RateLimiting.AuthPolicy)]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginCommand command, CancellationToken cancellationToken)
     {
@@ -58,6 +62,7 @@ public class AuthController : ControllerBase
     }
 
     // Always 204, whether or not the email has an account (so it can't be used to look accounts up).
+    [EnableRateLimiting(RateLimiting.AuthPolicy)]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command, CancellationToken cancellationToken)
     {
@@ -66,6 +71,7 @@ public class AuthController : ControllerBase
     }
 
     // With the token from the reset email. The user then logs in with the new password.
+    [EnableRateLimiting(RateLimiting.AuthPolicy)]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordCommand command, CancellationToken cancellationToken)
     {

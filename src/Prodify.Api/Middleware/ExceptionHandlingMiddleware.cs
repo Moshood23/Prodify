@@ -65,6 +65,14 @@ public class ExceptionHandlingMiddleware
                 businessRuleException.Message,
                 null),
 
+            // Kestrel's own request errors, e.g. a body over the size limit (413).
+            BadHttpRequestException badRequest => (
+                (HttpStatusCode)badRequest.StatusCode,
+                badRequest.StatusCode == StatusCodes.Status413PayloadTooLarge
+                    ? "The request is too large."
+                    : "The request could not be read.",
+                null),
+
             // Domain entities guard their rules with ArgumentException / InvalidOperationException.
             // Only treat them as a 400 when they come from Prodify.Domain; anywhere else they are bugs.
             ArgumentException or InvalidOperationException when IsFromDomain(exception) => (
