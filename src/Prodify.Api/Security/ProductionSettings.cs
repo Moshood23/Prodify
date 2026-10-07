@@ -24,6 +24,10 @@ public static class ProductionSettings
         if (origins.Length == 0 || origins.Any(o => o.Contains("localhost", StringComparison.OrdinalIgnoreCase)))
             problems.Add("Cors__AllowedOrigins__0 must be the live website address, e.g. https://prodify.ng.");
 
+        // Most hosts wipe the server's own disk on every deploy, which would lose every product photo.
+        if (string.IsNullOrWhiteSpace(configuration["FileStorage:CloudinaryUrl"]))
+            problems.Add("FileStorage__CloudinaryUrl must be set (cloudinary://API_KEY:API_SECRET@CLOUD_NAME), so photos are kept on Cloudinary.");
+
         if (problems.Count > 0)
             throw new InvalidOperationException(
                 "The API is not configured for production:" + Environment.NewLine + string.Join(Environment.NewLine, problems));

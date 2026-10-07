@@ -104,8 +104,10 @@ public static class DependencyInjection
         else
             services.AddScoped<IEmailTransport, FileEmailTransport>();
         services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
-        services.AddScoped<IFileStorage, LocalFileStorage>();
-
+        if (!string.IsNullOrWhiteSpace(configuration["FileStorage:CloudinaryUrl"]))
+            services.AddScoped<IFileStorage, CloudinaryFileStorage>();
+        else
+            services.AddScoped<IFileStorage, LocalFileStorage>();
         services.AddHostedService<OutboxProcessorHostedService>();
         services.AddHostedService<ReservationExpirationService>();
         services.AddHostedService<UnpaidOrderCancellationService>();
