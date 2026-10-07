@@ -19,7 +19,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
         var result = await _identityService.LoginAsync(request.Email, request.Password, cancellationToken);
 
         if (!result.Succeeded)
-            throw new BusinessRuleException("Invalid email or password.");
+            // "Invalid email or password." or, after 5 wrong tries, the lockout message.
+            throw new BusinessRuleException(result.Errors.FirstOrDefault() ?? "Invalid email or password.");
 
         return new AuthResultDto
         {

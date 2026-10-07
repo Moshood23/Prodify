@@ -56,10 +56,20 @@ public class IdentityService : IIdentityService
         string email, string password, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByEmailAsync(email);
+        if (user is null)
+            return Failure(InvalidLogin);
 
-        if (user is null || !await _userManager.CheckPasswordAsync(user, password))
-            return Failure("Invalid email or password.");
+        if (await _userManager.IsLockedOutAsync(user))
+            return Failure(LockedOut);
 
+        if (!await _userManager.CheckPasswordAsync(user, password))
+        {
+            // Counts towards the lockout; the 5th wrong password in a row locks the account.
+            await _userManager.AccessFailedAsync(user);
+            return Failure(await _userManager.IsLockedOutAsync(user) ? LockedOut : InvalidLogin);
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(user);
         return await IssueTokensAsync(user, cancellationToken);
     }
 
@@ -107,7 +117,6 @@ public class IdentityService : IIdentityService
         {
             if (stored.ReplacedByTokenHash is not null)
                 await RevokeAllForUserAsync(stored.UserId, cancellationToken);
-
             return Failure("Invalid refresh token.");
         }
 
@@ -171,10 +180,15 @@ public class IdentityService : IIdentityService
 
         // Anyone who had the old password may still be logged in: end those sessions.
         await RevokeAllForUserAsync(user.Id, cancellationToken);
+        // A new password also lifts a lockout from wrong guesses.
+        await _userManager.SetLockoutEndDateAsync(user, null);
+        await _userManager.ResetAccessFailedCountAsync(user);
 
         return new Application.Common.Interfaces.IdentityResult(true, user.Id, null, Enumerable.Empty<string>());
     }
 
+    public const string InvalidLogin = "Invalid email or password.";
+    public const string LockedOut = "Too many wrong passwords. Try again in 15 minutes, or reset your password.";
     public const string InvalidResetLink = "This reset link is invalid or has expired. Please request a new one.";
 
     private static string Base64UrlEncode(byte[] bytes) =>

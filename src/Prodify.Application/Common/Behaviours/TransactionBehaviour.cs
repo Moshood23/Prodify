@@ -23,7 +23,8 @@ public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
     {
         var requestName = typeof(TRequest).Name;
 
-        if (!requestName.EndsWith("Command", StringComparison.Ordinal))
+        if (!requestName.EndsWith("Command", StringComparison.Ordinal) || request is INoTransaction)
+
             return await next();
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
