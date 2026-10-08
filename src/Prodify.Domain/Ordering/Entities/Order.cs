@@ -35,6 +35,10 @@ public class Order : AuditableEntity
     // Fixed when the order is placed, so later changes to the state's fee don't affect it.
     public decimal DeliveryFee { get; private set; }
 
+    // A voucher used at checkout: its code and the naira it took off the items (Prodify pays it).
+    public string? VoucherCode { get; private set; }
+    public decimal Discount { get; private set; }
+
     public ICollection<SellerOrder> SellerOrders => _sellerOrders;
     public ICollection<OrderItem> Items => _items;
 
@@ -42,8 +46,8 @@ public class Order : AuditableEntity
         .Select(i => i.Subtotal)
         .Aggregate(Money.Zero(), (acc, next) => acc.Add(next));
 
-    // What the customer pays: items plus delivery.
-    public Money Total => ItemsTotal.Add(Money.Create(DeliveryFee));
+    // What the customer pays: items plus delivery, minus any voucher.
+    public Money Total => Money.Create(ItemsTotal.Amount + DeliveryFee - Discount);
 
     public OrderStatus Status => ComputeStatus();
 
@@ -103,6 +107,31 @@ public class Order : AuditableEntity
         order.AddDomainEvent(new OrderPlacedEvent(order.Id, order.CustomerId));
 
         return order;
+    }
+
+    public void ApplyVoucher(string code, decimal discount)
+    {
+        if (VoucherCode is not null)
+            throw new InvalidOperationException("This order already has a voucher.");
+
+        if (discount <= 0 || discount > ItemsTotal.Amount)
+            throw new ArgumentOutOfRangeException(nameof(discount), "A voucher discount must be more than 0 and no more than the items.");
+
+        VoucherCode = code;
+        Discount = discount;
+    }
+
+    // The part of the voucher discount that belongs to these seller parts, in proportion to their items.
+    // Used so a refund or cash collection for some parts gives back only their share of the discount.
+    // Works from the seller parts (all of them, cancelled too), which are loaded wherever parts change.
+    public decimal DiscountShare(IEnumerable<SellerOrder> parts)
+    {
+        var allParts = _sellerOrders.Sum(so => so.Total.Amount);
+        if (Discount == 0 || allParts == 0)
+            return 0;
+
+        var partsTotal = parts.Sum(p => p.Total.Amount);
+        return Math.Round(Discount * partsTotal / allParts, 2, MidpointRounding.AwayFromZero);
     }
 
     public void MarkAsPaid(Guid paymentId)

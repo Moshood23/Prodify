@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Prodify.Application.Ordering.Commands.PlaceOrder;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Promotions.Vouchers.Queries.CheckVoucher;
 
 namespace Prodify.Api.Controllers;
 
@@ -23,5 +24,13 @@ public class CheckoutController : ControllerBase
     {
         var orderId = await _mediator.Send(command, cancellationToken);
         return Ok(orderId);
+    }
+
+    // How much a voucher code takes off the current cart.
+    [HttpPost("voucher")]
+    public async Task<IActionResult> CheckVoucher(CheckVoucherQuery query, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
     }
 }

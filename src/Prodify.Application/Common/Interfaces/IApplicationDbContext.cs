@@ -46,6 +46,8 @@ public interface IApplicationDbContext
 
     IQueryable<Notification> Notifications { get; }
 
+    IQueryable<Domain.Promotions.Entities.Voucher> Vouchers { get; }
+
     void Add<TEntity>(TEntity entity) where TEntity : class;
     void Remove<TEntity>(TEntity entity) where TEntity : class;
 

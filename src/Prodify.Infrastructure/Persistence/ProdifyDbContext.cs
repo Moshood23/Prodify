@@ -53,6 +53,8 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     // Notifications
     public DbSet<Notification> Notifications => Set<Notification>();
 
+    public DbSet<Prodify.Domain.Promotions.Entities.Voucher> Vouchers => Set<Prodify.Domain.Promotions.Entities.Voucher>();
+
     // Shipping
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<DeliveryFee> DeliveryFees => Set<DeliveryFee>();
@@ -90,6 +92,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Customer> IApplicationDbContext.Customers => Customers;
     IQueryable<Seller> IApplicationDbContext.Sellers => Sellers;
     IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
+    IQueryable<Prodify.Domain.Promotions.Entities.Voucher> IApplicationDbContext.Vouchers => Vouchers;
     IQueryable<Domain.Shipping.Entities.Shipment> IApplicationDbContext.Shipments => Shipments;
     IQueryable<DeliveryFee> IApplicationDbContext.DeliveryFees => DeliveryFees;
     IQueryable<ProductReview> IApplicationDbContext.ProductReviews => ProductReviews;

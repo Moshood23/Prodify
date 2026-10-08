@@ -59,6 +59,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasColumnType("decimal(18,2)")
             .HasDefaultValue(0m);
 
+        builder.Property(o => o.VoucherCode).HasMaxLength(30);
+        builder.Property(o => o.Discount)
+            .HasColumnType("decimal(18,2)")
+            .HasDefaultValue(0m);
+
+
         builder.Ignore(o => o.ItemsTotal);
         builder.Ignore(o => o.Total); builder.Ignore(o => o.Status);
 

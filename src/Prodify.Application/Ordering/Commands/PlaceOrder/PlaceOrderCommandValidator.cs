@@ -40,5 +40,8 @@ public class PlaceOrderCommandValidator : AbstractValidator<PlaceOrderCommand>
         RuleFor(x => x.PaymentMethod)
             .Must(method => Enum.TryParse<PaymentMethod>(method, ignoreCase: true, out _))
             .WithMessage("Payment method must be 'Card' or 'PayOnDelivery'.");
+
+        RuleFor(x => x.VoucherCode)
+            .MaximumLength(30);
     }
 }

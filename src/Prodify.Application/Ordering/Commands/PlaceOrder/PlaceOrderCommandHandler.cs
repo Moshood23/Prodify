@@ -9,6 +9,7 @@ using Prodify.Domain.Inventory.Entities;
 using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Ordering.ValueObjects;
 using Prodify.Application.Shipping.DeliveryFees;
+using Prodify.Application.Promotions.Vouchers.Common;
 
 namespace Prodify.Application.Ordering.Commands.PlaceOrder;
 
@@ -77,6 +78,15 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
             ?? throw new BusinessRuleException($"We don't deliver to {request.State.Trim()} yet. Please choose another address.");
 
         var order = Order.Place(customerId, shippingAddress, lineItems, paymentMethod, deliveryFee);
+
+        // Checked again here: the cart or the voucher may have changed since checkout showed the discount.
+        if (!string.IsNullOrWhiteSpace(request.VoucherCode))
+        {
+            var (voucher, discount) = await _context.GetUsableVoucherAsync(request.VoucherCode, order.ItemsTotal.Amount, cancellationToken);
+            order.ApplyVoucher(voucher.Code, discount);
+            voucher.RecordUse();
+        }
+
         _context.Add(order);
 
         foreach (var (item, quantity) in stockToReserve)
