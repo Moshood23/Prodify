@@ -18,6 +18,9 @@ public class OrderDto
     public string Status { get; set; } = null!;
     public decimal ItemsTotal { get; set; }
     public decimal DeliveryFee { get; set; }
+    // Voucher used at checkout, if any, and the naira it took off.
+    public string? VoucherCode { get; set; }
+    public decimal Discount { get; set; }
     public decimal Total { get; set; }
     public decimal RefundedAmount { get; set; }
 

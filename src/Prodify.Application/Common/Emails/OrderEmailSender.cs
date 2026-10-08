@@ -56,6 +56,9 @@ public class OrderEmailSender
                 "We'll email you again when your items are on their way.",
                 ItemRows(order.Items.Select(i => (i.ProductName, i.Quantity, i.UnitPrice.Amount)))
                     .Append(("Delivery", order.DeliveryFee == 0 ? "Free" : Naira.Format(order.DeliveryFee), false))
+                    .Concat(order.Discount > 0
+                        ? new[] { ($"Voucher {order.VoucherCode}", "-" + Naira.Format(order.Discount), false) }
+                        : Array.Empty<(string, string, bool)>())
                     .Append(("Total", Naira.Format(order.Total.Amount), true))));
         }
 

@@ -902,6 +902,12 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m);
 
+                    b.Property<decimal>("Discount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
@@ -918,6 +924,11 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("Card");
+
+
+                    b.Property<string>("VoucherCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("Id");
 
@@ -1322,6 +1333,60 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                     .HasForeignKey("SellerId")
                     .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired();
+            });
+
+            modelBuilder.Entity("Prodify.Domain.Promotions.Entities.Voucher", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("Code")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("nvarchar(200)");
+
+                b.Property<string>("DiscountType")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
+
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
+
+                b.Property<decimal>("MinOrderAmount")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<int>("TimesUsed")
+                    .HasColumnType("int");
+
+                b.Property<decimal>("Value")
+                    .HasColumnType("decimal(18,2)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Code")
+                    .IsUnique();
+
+                b.ToTable("Vouchers", (string)null);
             });
 
             modelBuilder.Entity("Prodify.Domain.Sellers.Entities.Seller", b =>

@@ -9,12 +9,12 @@ namespace Prodify.Application.Ordering.Common;
 
 public static class OrderRefunds
 {
-    // What to send back when these parts are cancelled: their items, plus the
-    // delivery fee if nothing else in the order is left to deliver.
+    // What to send back when these parts are cancelled: their items less their share of any
+    // voucher discount, plus the delivery fee if nothing else in the order is left to deliver.
     // Call it before the parts are marked as cancelled.
     public static decimal RefundFor(Order order, IReadOnlyCollection<SellerOrder> cancelling)
     {
-        var items = cancelling.Sum(so => so.Total.Amount);
+        var items = cancelling.Sum(so => so.Total.Amount) - order.DiscountShare(cancelling);
         var nothingLeft = order.SellerOrders.All(so => cancelling.Contains(so) || so.Status == SellerOrderStatus.Cancelled);
 
         return nothingLeft ? items + order.DeliveryFee : items;

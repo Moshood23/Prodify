@@ -15,4 +15,7 @@ public class PlaceOrderCommand : IRequest<Guid>
 
     // "Card" (pay online now) or "PayOnDelivery".
     public string PaymentMethod { get; set; } = "Card";
+
+    // Optional voucher code, e.g. WELCOME10.
+    public string? VoucherCode { get; set; }
 }
