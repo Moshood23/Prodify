@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
@@ -17,7 +18,7 @@ using Prodify.Infrastructure.Messaging.Outbox;
 
 namespace Prodify.Infrastructure.Persistence;
 
-public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IApplicationDbContext
+public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IApplicationDbContext, IDataProtectionKeyContext
 {
     public ProdifyDbContext(DbContextOptions<ProdifyDbContext> options) : base(options)
     {
@@ -70,6 +71,9 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     public DbSet<Prodify.Infrastructure.Email.EmailMessage> EmailMessages => Set<Prodify.Infrastructure.Email.EmailMessage>();
     // Identity
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    // Keys that sign password-reset links; kept here so links stay valid across restarts and deploys.
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public DbSet<SellerOrder> SellerOrders => Set<SellerOrder>();
     // IApplicationDbContext explicit IQueryable projections

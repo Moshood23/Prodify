@@ -1,6 +1,6 @@
 ﻿# Build context is the repository root:
 #   docker compose up --build            (runs the API)
-#   docker build -f infrastructure/docker/api/Dockerfile --target test .   (runs the tests)
+#   docker build -f Infrastructure/docker/api/Dockerfile --target test .   (runs the tests)
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -29,6 +29,10 @@ RUN dotnet publish src/Prodify.Api/Prodify.Api.csproj -c Release --no-build -o /
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=publish /app/publish .
+# Runs as the image's normal "app" user, not root. It may only write to these two folders
+# (local photos and saved emails, used when Cloudinary or SMTP are not set up).
+RUN mkdir -p uploads emails && chown "$APP_UID" uploads emails
+USER $APP_UID
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Prodify.Api.dll"]

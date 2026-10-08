@@ -79,7 +79,9 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    if (app.Environment.IsDevelopment())
+    // Development always; on a live server when Database:MigrateOnStartup is true, so each
+    // deploy brings the database up to date before the API starts taking requests.
+    if (app.Environment.IsDevelopment() || app.Configuration.GetValue("Database:MigrateOnStartup", false))
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ProdifyDbContext>();
         await dbContext.Database.MigrateAsync();

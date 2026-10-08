@@ -2,4 +2,5 @@
 **/obj/
 **/.vs/
 **/*.user
-.git/
+.git/**/uploads/
+**/emails/
