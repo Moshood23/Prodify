@@ -28,6 +28,21 @@ public static class ProductionSettings
         if (string.IsNullOrWhiteSpace(configuration["FileStorage:CloudinaryUrl"]))
             problems.Add("FileStorage__CloudinaryUrl must be set (cloudinary://API_KEY:API_SECRET@CLOUD_NAME), so photos are kept on Cloudinary.");
 
+        var website = configuration["App:FrontendUrl"] ?? "";
+        if (!website.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            problems.Add("App__FrontendUrl must be the live website address (https://...), used for links in emails.");
+
+        // Without these, emails would only be saved as files on the server and never reach anyone.
+        if (!string.Equals(configuration["Email:Mode"], "Smtp", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(configuration["Email:SmtpHost"])
+            || string.IsNullOrWhiteSpace(configuration["Email:SmtpUser"])
+            || string.IsNullOrWhiteSpace(configuration["Email:SmtpPassword"]))
+            problems.Add("Email__Mode must be Smtp, with Email__SmtpHost, Email__SmtpUser and Email__SmtpPassword from Brevo.");
+
+        var from = configuration["Email:FromAddress"] ?? "";
+        if (!from.Contains('@') || from.EndsWith(".local", StringComparison.OrdinalIgnoreCase))
+            problems.Add("Email__FromAddress must be an address on your own domain, e.g. noreply@prodify.ng.");
+
         if (problems.Count > 0)
             throw new InvalidOperationException(
                 "The API is not configured for production:" + Environment.NewLine + string.Join(Environment.NewLine, problems));

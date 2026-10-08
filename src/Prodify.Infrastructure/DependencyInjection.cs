@@ -2,6 +2,7 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +47,7 @@ public static class DependencyInjection
         })
             .AddEntityFrameworkStores<ProdifyDbContext>()
             .AddDefaultTokenProviders();
+        services.AddDataProtection().PersistKeysToDbContext<ProdifyDbContext>();
         services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(1));
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));

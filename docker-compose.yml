@@ -20,7 +20,7 @@
   api:
     build:
       context: .
-      dockerfile: infrastructure/docker/api/Dockerfile
+      dockerfile: Infrastructure/docker/api/Dockerfile
     container_name: prodify-api
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
