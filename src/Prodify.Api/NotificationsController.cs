@@ -1,8 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Prodify.Application.Notifications.Commands.MarkAllAsRead;
 using Prodify.Application.Notifications.Commands.MarkAsRead;
 using Prodify.Application.Notifications.Queries.GetNotifications;
+using Prodify.Application.Notifications.Queries.GetUnreadCount;
 namespace Prodify.Api.Controllers;
 
 [ApiController]
@@ -22,6 +24,20 @@ public class NotificationsController : ControllerBase
     {
         var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpGet("unread-count")]
+    public async Task<IActionResult> UnreadCount(CancellationToken cancellationToken)
+    {
+        var count = await _mediator.Send(new GetUnreadCountQuery(), cancellationToken);
+        return Ok(new { count });
+    }
+
+    [HttpPost("read-all")]
+    public async Task<IActionResult> MarkAllAsRead(CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new MarkAllAsReadCommand(), cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/read")]

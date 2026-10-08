@@ -41,4 +41,19 @@ public class NotificationTests
 
         Assert.Equal(firstReadAt, notification.ReadAt);
     }
+
+    [Fact]
+    public void Create_WithLink_KeepsThePage()
+    {
+        var notification = Notification.Create(Guid.NewGuid(), NotificationType.OrderShipped, "Shipped", "On its way", "/orders/123");
+
+        Assert.Equal("/orders/123", notification.Link);
+    }
+
+    [Fact]
+    public void Create_WithLinkToAnotherWebsite_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Notification.Create(Guid.NewGuid(), NotificationType.General, "Hi", "Hello", "https://example.com"));
+    }
 }

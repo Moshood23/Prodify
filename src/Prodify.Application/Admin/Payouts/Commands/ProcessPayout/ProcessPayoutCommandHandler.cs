@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Domain.Notifications.Entities;
 
 namespace Prodify.Application.Admin.Payouts.Commands.ProcessPayout;
 
@@ -31,7 +32,7 @@ public class ProcessPayoutCommandHandler : IRequestHandler<ProcessPayoutCommand>
 
         var seller = await _context.Sellers
             .Where(s => s.Id == payout.SellerId)
-            .Select(s => new { s.BusinessName, s.Email })
+            .Select(s => new { s.Id, s.BusinessName, s.Email })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (seller is null)
@@ -39,6 +40,13 @@ public class ProcessPayoutCommandHandler : IRequestHandler<ProcessPayoutCommand>
 
         var amount = Naira.Format(payout.Amount);
         var account = $"{payout.BankName}, {payout.AccountName} ({payout.AccountNumber})";
+
+        _context.Add(Notification.Create(seller.Id, NotificationType.Payout,
+            request.Paid ? "Payout sent" : "Payout not paid",
+            request.Paid
+                ? $"We've sent {amount} to {account}. Reference: {payout.Reference}."
+                : $"We couldn't pay your request of {amount}. Reason: {payout.RejectReason}",
+            "/seller/earnings"));
 
         _emails.Enqueue(seller.Email, seller.BusinessName, request.Paid
             ? EmailLayout.Build(

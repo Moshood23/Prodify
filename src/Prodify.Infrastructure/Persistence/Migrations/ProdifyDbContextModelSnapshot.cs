@@ -841,6 +841,10 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Link")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(2000)

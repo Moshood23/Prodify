@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Ordering.SellerOrders.Common;
+using Prodify.Domain.Notifications.Entities;
+using Prodify.Domain.Notifications.Entities;
 using Prodify.Domain.Ordering.Entities;
 
 namespace Prodify.Application.Common.Emails;
 
-// Queues the emails about an order: to the customer at each step, and to
-// sellers when there's something for them to do (or to stop doing).
+// Queues the emails about an order, and the matching notifications on the website's bell:
+// to the customer at each step, and to sellers when there's something for them to do (or to stop doing).
 public class OrderEmailSender
 {
     private readonly IApplicationDbContext _context;
@@ -24,6 +26,15 @@ public class OrderEmailSender
     // Needs the order's Items and SellerOrders.
     public async Task OrderConfirmedAsync(Order order, CancellationToken cancellationToken)
     {
+        var number = order.OrderNumber.Value;
+        Notify(order.CustomerId,
+            order.PaymentMethod == PaymentMethod.Card ? NotificationType.PaymentSuccessful : NotificationType.OrderPlaced,
+            order.PaymentMethod == PaymentMethod.Card ? "Payment received" : "Order placed",
+            order.PaymentMethod == PaymentMethod.Card
+                ? $"We've received {Naira.Format(order.Total.Amount)} for order {number}. The seller will now prepare it."
+                : $"Order {number} is placed. You'll pay {Naira.Format(order.Total.Amount)} when it arrives.",
+            $"/orders/{order.Id}");
+
         var customer = await CustomerAsync(order, cancellationToken);
         if (customer is not null)
         {
@@ -56,6 +67,10 @@ public class OrderEmailSender
                 continue;
 
             var items = order.Items.Where(i => i.SellerOrderId == part.Id).ToList();
+            Notify(part.SellerId, NotificationType.NewOrder, "New order to prepare",
+                $"Order {number}: {items.Sum(i => i.Quantity)} item(s). Please confirm and pack it.",
+                $"/seller/orders/{part.Id}");
+
             _emails.Enqueue(seller.Email, seller.BusinessName, EmailLayout.Build(
                 $"New order {order.OrderNumber.Value} to prepare",
                 "You have a new order",
@@ -74,11 +89,15 @@ public class OrderEmailSender
     // One seller's part has left. Needs the part's Items.
     public async Task PartShippedAsync(Order order, SellerOrder part, string carrier, string? trackingNumber, CancellationToken cancellationToken)
     {
+        var tracking = string.IsNullOrWhiteSpace(trackingNumber) ? "" : $", tracking number {trackingNumber.Trim()}";
+        Notify(order.CustomerId, NotificationType.OrderShipped, "Your items are on their way",
+            $"Items from order {order.OrderNumber.Value} were sent with {carrier.Trim()}{tracking}.",
+            $"/orders/{order.Id}");
+
         var customer = await CustomerAsync(order, cancellationToken);
         if (customer is null)
             return;
 
-        var tracking = string.IsNullOrWhiteSpace(trackingNumber) ? "" : $", tracking number {trackingNumber.Trim()}";
         _emails.Enqueue(customer.Value.Email, customer.Value.FirstName, EmailLayout.Build(
             $"Your order {order.OrderNumber.Value} is on its way",
             "Your items are on their way",
@@ -97,6 +116,10 @@ public class OrderEmailSender
     // One seller's part has arrived. Needs the part's Items.
     public async Task PartDeliveredAsync(Order order, SellerOrder part, CancellationToken cancellationToken)
     {
+        Notify(order.CustomerId, NotificationType.OrderDelivered, "Items delivered",
+            $"Items from order {order.OrderNumber.Value} have been delivered. We hope you enjoy them!",
+            $"/orders/{order.Id}");
+
         var customer = await CustomerAsync(order, cancellationToken);
         if (customer is null)
             return;
@@ -129,6 +152,15 @@ public class OrderEmailSender
         var wholeOrder = order.SellerOrders.All(so => parts.Contains(so) || so.Status == SellerOrderStatus.Cancelled);
         var items = parts.SelectMany(p => p.Items).ToList();
 
+        Notify(order.CustomerId, NotificationType.OrderCancelled,
+            wholeOrder ? "Order cancelled" : "Items cancelled",
+            (wholeOrder
+                ? $"Order {order.OrderNumber.Value} was cancelled."
+                : $"Some items in order {order.OrderNumber.Value} were cancelled.")
+                + (refunded > 0 ? $" {Naira.Format(refunded)} was refunded to your card." : "")
+                + $" Reason: {reason}",
+            $"/orders/{order.Id}");
+
         if (customer is not null)
         {
             var lines = new List<string>
@@ -157,6 +189,10 @@ public class OrderEmailSender
         var sellers = await SellersAsync(parts.Select(p => p.SellerId), cancellationToken);
         foreach (var part in parts)
         {
+            Notify(part.SellerId, NotificationType.OrderCancelled, "Order cancelled",
+                $"Order {order.OrderNumber.Value} was cancelled, so please don't send it. Reason: {reason}",
+                $"/seller/orders/{part.Id}");
+
             if (!sellers.TryGetValue(part.SellerId, out var seller))
                 continue;
 
@@ -173,6 +209,9 @@ public class OrderEmailSender
                 rows: ItemRows(part.Items.Select(i => (i.ProductName, i.Quantity, i.UnitPrice.Amount)))));
         }
     }
+
+    private void Notify(Guid recipientId, NotificationType type, string title, string message, string link) =>
+        _context.Add(Notification.Create(recipientId, type, title, message, link));
 
     private static IEnumerable<(string Label, string Value, bool Bold)> ItemRows(IEnumerable<(string Name, int Quantity, decimal UnitPrice)> items) =>
         items.Select(i => ($"{i.Name} x {i.Quantity}", Naira.Format(i.UnitPrice * i.Quantity), false));

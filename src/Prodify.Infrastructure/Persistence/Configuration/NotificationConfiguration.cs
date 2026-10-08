@@ -35,6 +35,8 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 
         builder.Property(n => n.ReadAt);
 
+        builder.Property(n => n.Link).HasMaxLength(300);
+
         builder.Property(n => n.CreatedAt).IsRequired();
         builder.Property(n => n.CreatedBy).HasMaxLength(256);
         builder.Property(n => n.ModifiedAt);

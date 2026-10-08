@@ -10,7 +10,11 @@ public enum NotificationType
     OrderCancelled,
     PaymentSuccessful,
     PaymentFailed,
-    General
+    General,
+    // For sellers:
+    NewOrder,
+    AccountUpdate,
+    Payout
 }
 
 public class Notification : AuditableEntity
@@ -22,20 +26,24 @@ public class Notification : AuditableEntity
     public bool IsRead { get; private set; }
     public DateTime? ReadAt { get; private set; }
 
+    // Website page the notification opens, e.g. /orders/{id}.
+    public string? Link { get; private set; }
+
     private Notification()
     {
     }
 
-    private Notification(Guid id, Guid recipientId, NotificationType type, string title, string message) : base(id)
+    private Notification(Guid id, Guid recipientId, NotificationType type, string title, string message, string? link) : base(id)
     {
         RecipientId = recipientId;
         Type = type;
         Title = title;
         Message = message;
+        Link = link;
         IsRead = false;
     }
 
-    public static Notification Create(Guid recipientId, NotificationType type, string title, string message)
+    public static Notification Create(Guid recipientId, NotificationType type, string title, string message, string? link = null)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Notification title cannot be empty.", nameof(title));
@@ -43,7 +51,10 @@ public class Notification : AuditableEntity
         if (string.IsNullOrWhiteSpace(message))
             throw new ArgumentException("Notification message cannot be empty.", nameof(message));
 
-        return new Notification(Guid.NewGuid(), recipientId, type, title.Trim(), message.Trim());
+        if (link is not null && !link.StartsWith('/'))
+            throw new ArgumentException("Notification link must be a page on the website, e.g. /orders/123.", nameof(link));
+
+        return new Notification(Guid.NewGuid(), recipientId, type, title.Trim(), message.Trim(), link);
     }
 
     public void MarkAsRead()
