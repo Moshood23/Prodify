@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Models;
+using Prodify.Application.Notifications.Common;
 
 namespace Prodify.Application.Notifications.Queries.GetNotifications;
 
@@ -19,10 +20,7 @@ public class GetNotificationsQueryHandler : IRequestHandler<GetNotificationsQuer
     public async Task<PaginatedList<NotificationDto>> Handle(GetNotificationsQuery request, CancellationToken cancellationToken)
     {
         // Notifications are addressed to a customer or seller profile, never to a raw user id.
-        var recipientIds = new[] { _currentUser.CustomerId, _currentUser.SellerId }
-            .Where(id => id.HasValue)
-            .Select(id => id!.Value)
-            .ToList();
+        var recipientIds = NotificationRecipients.Of(_currentUser);
 
         var query = _context.Notifications
             .Where(n => recipientIds.Contains(n.RecipientId));
@@ -42,6 +40,7 @@ public class GetNotificationsQueryHandler : IRequestHandler<GetNotificationsQuer
                 Type = n.Type.ToString(),
                 Title = n.Title,
                 Message = n.Message,
+                Link = n.Link,
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt
             })

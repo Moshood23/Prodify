@@ -2,6 +2,7 @@
 using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Sellers.Common;
+using Prodify.Domain.Notifications.Entities;
 
 namespace Prodify.Application.Sellers.Commands.RejectSeller;
 
@@ -24,5 +25,7 @@ public class RejectSellerCommandHandler : IRequestHandler<RejectSellerCommand>
         seller.Reject(request.Reason);
 
         _emails.Enqueue(seller.Email, seller.BusinessName, SellerEmails.Rejected(seller, request.Reason.Trim(), _urls));
+        _context.Add(Notification.Create(seller.Id, NotificationType.AccountUpdate, "Your seller application was not approved",
+            $"You can update your details and apply again. Reason: {request.Reason.Trim()}", "/seller"));
     }
 }

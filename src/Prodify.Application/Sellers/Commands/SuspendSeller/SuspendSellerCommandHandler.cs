@@ -2,6 +2,7 @@
 using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Sellers.Common;
+using Prodify.Domain.Notifications.Entities;
 
 namespace Prodify.Application.Sellers.Commands.SuspendSeller;
 
@@ -24,5 +25,7 @@ public class SuspendSellerCommandHandler : IRequestHandler<SuspendSellerCommand>
         seller.Suspend(request.Reason);
 
         _emails.Enqueue(seller.Email, seller.BusinessName, SellerEmails.Suspended(seller, request.Reason.Trim()));
+        _context.Add(Notification.Create(seller.Id, NotificationType.AccountUpdate, "Your store is suspended",
+            $"Your products are hidden from the shop. Reason: {request.Reason.Trim()}", "/seller"));
     }
 }
