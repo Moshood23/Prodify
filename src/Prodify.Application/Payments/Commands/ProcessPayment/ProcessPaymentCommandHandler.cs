@@ -27,6 +27,8 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
 
     public async Task<Guid> Handle(ProcessPaymentCommand request, CancellationToken cancellationToken)
     {
+        if (_paymentService.Provider != PaymentProviders.Simulated)
+            throw new BusinessRuleException("Card payments go through Paystack.");
         var order = await _context.Orders
             .Include(o => o.Items)
             .Include(o => o.SellerOrders)

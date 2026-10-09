@@ -1121,8 +1121,9 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("GatewayReference");
 
                     b.HasIndex("PaymentId");
 

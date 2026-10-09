@@ -7,6 +7,10 @@ public class SimulatedPaymentGateway : IPaymentService
 {
     private const string ForceFailureToken = "FAIL";
 
+    public string Provider => PaymentProviders.Simulated;
+
+    public bool IsTestMode => true;
+
     public Task<PaymentResult> ChargeAsync(Money amount, string paymentMethodToken, CancellationToken cancellationToken = default)
     {
         if (paymentMethodToken.Contains(ForceFailureToken, StringComparison.OrdinalIgnoreCase))
@@ -30,4 +34,12 @@ public class SimulatedPaymentGateway : IPaymentService
             Succeeded: true,
             GatewayReference: $"SIMREF-{Guid.NewGuid():N}",
             FailureReason: null));
+
+    public Task<string> StartHostedCheckoutAsync(HostedCheckoutRequest request, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("The simulated gateway has no payment page.");
+
+    public Task<GatewayTransaction> VerifyAsync(string reference, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("The simulated gateway has no payment page.");
+
+    public bool IsGenuineWebhook(string payload, string? signature) => false;
 }

@@ -50,6 +50,7 @@ public interface IApplicationDbContext
 
     void Add<TEntity>(TEntity entity) where TEntity : class;
     void Remove<TEntity>(TEntity entity) where TEntity : class;
+    Task LockPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

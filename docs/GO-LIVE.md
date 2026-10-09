@@ -10,6 +10,7 @@ Do the steps in order; each one says where its values come from.
 | Domain (e.g. `prodify.ng`) | Website and API addresses, email sender | `.ng` / `.com.ng` from a Nigerian registrar, `.com` from Cloudflare or Namecheap |
 | Cloudinary | Product photos | Free plan is enough to start |
 | Brevo | Emails (order updates, password reset) | Free daily allowance |
+| Paystack | Card, bank transfer and USSD payments | Test keys right away; live keys after Paystack checks your business |
 | Hosting for the API and database | Runs the API (Docker image) and SQL Server | Azure App Service + Azure SQL, or one Linux server (VPS) |
 | Cloudflare Pages | Runs the website | Free |
 
@@ -46,6 +47,7 @@ The API refuses to start, and lists what is missing, until the required ones are
 | `Cors__AllowedOrigins__1` | `https://www.prodify.ng` (if you use www) |
 | `App__FrontendUrl` | `https://prodify.ng` (links in emails) |
 | `FileStorage__CloudinaryUrl` | Cloudinary dashboard: "API environment variable", `cloudinary://...` |
+| `Paystack__SecretKey` | Paystack dashboard: Settings > API Keys & Webhooks, `sk_test_...` or `sk_live_...` (step 8) |
 | `Email__Mode` | `Smtp` |
 | `Email__SmtpHost` | `smtp-relay.brevo.com` |
 | `Email__SmtpPort` | `587` |
@@ -102,7 +104,23 @@ security headers and long caching for `/assets`. If the build log says
 
 Without a verified domain, emails go to spam or are refused.
 
-## 8. Check it works
+## 8. Payments (Paystack)
+
+Without `Paystack__SecretKey` the API uses the built-in test card form and no money moves.
+The live API refuses to start without it.
+
+1. Sign up at paystack.com. The dashboard starts in Test Mode.
+2. Settings > API Keys & Webhooks: copy the Test Secret Key (`sk_test_...`) into `Paystack__SecretKey`.
+3. On the same page set the Test Webhook URL to `https://api.prodify.ng/api/payments/paystack/webhook`.
+   Paystack calls it when a payment goes through, even if the customer closes the page before coming back.
+4. Pay for a test order with the card `4084 0840 8408 4081`, any future expiry date, CVV `408`.
+5. When Paystack has approved your business ("Activate business" in the dashboard), switch to Live Mode,
+   copy the Live Secret Key (`sk_live_...`) into `Paystack__SecretKey`, and set the Live Webhook URL to the same address.
+
+Keep the secret key only in the host's settings, never in the code or the website.
+If a payment arrives after its order was cancelled or already paid, the API sends the money back through Paystack by itself.
+
+## 9. Check it works
 
 - [ ] `https://api.prodify.ng/health` shows Healthy.
 - [ ] The website opens, products and categories load, no errors in the browser console.
@@ -111,10 +129,12 @@ Without a verified domain, emails go to spam or are refused.
 - [ ] As a seller: apply, get approved by the admin, add a product with a photo
       (the photo address should start with `https://res.cloudinary.com/`).
 - [ ] Place an order, move it through confirm, pack, ship and deliver.
+- [ ] Pay for a card order on Paystack; the order shows Paid, and the payment appears in the Paystack dashboard.
+- [ ] Cancel a paid card order; the refund appears in the Paystack dashboard under Refunds.
 - [ ] Admin dashboard and sales chart show the order.
 
-## 9. After launch
+## 10. After launch
 
 - Check the host's logs for errors in the first days.
 - Keep the database backups on, and try restoring one once.
-- Payments are still simulated: the next step is Paystack (test keys first, then live keys).
+- Watch the Paystack dashboard for failed payments and refunds.

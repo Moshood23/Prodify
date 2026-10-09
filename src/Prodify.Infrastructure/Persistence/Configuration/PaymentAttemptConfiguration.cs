@@ -32,5 +32,8 @@ public class PaymentAttemptConfiguration : IEntityTypeConfiguration<PaymentAttem
             .IsRequired();
 
         builder.HasIndex(a => a.PaymentId);
+
+        // Paystack payments are looked up by their reference when the customer comes back and on webhooks.
+        builder.HasIndex(a => a.GatewayReference);
     }
 }

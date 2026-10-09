@@ -26,6 +26,9 @@ public class RetryPaymentCommandHandler : IRequestHandler<RetryPaymentCommand>
 
     public async Task Handle(RetryPaymentCommand request, CancellationToken cancellationToken)
     {
+        if (_paymentService.Provider != PaymentProviders.Simulated)
+            throw new BusinessRuleException("Card payments go through Paystack.");
+
         var payment = await _context.Payments
             .FirstOrDefaultAsync(p => p.Id == request.PaymentId, cancellationToken);
 

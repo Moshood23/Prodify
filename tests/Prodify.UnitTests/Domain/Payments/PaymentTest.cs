@@ -104,4 +104,43 @@ public class PaymentTests
 
         Assert.Throws<InvalidOperationException>(() => payment.RecordRefund(100m));
     }
+
+
+    [Fact]
+    public void StartAttempt_WithReference_KeepsItOnThePendingAttempt()
+    {
+        var payment = Payment.Create(Guid.NewGuid(), Money.Create(1000m));
+
+        var attempt = payment.StartAttempt("ORD-1-ABC");
+
+        Assert.Equal("ORD-1-ABC", attempt.GatewayReference);
+        Assert.Equal(PaymentAttemptStatus.Pending, attempt.Status);
+        Assert.Null(payment.GatewayReference);
+    }
+
+    [Fact]
+    public void FailAttempt_AfterAnotherAttemptSucceeded_KeepsThePaymentSucceeded()
+    {
+        var payment = Payment.Create(Guid.NewGuid(), Money.Create(1000m));
+        var first = payment.StartAttempt("ref-1");
+        var second = payment.StartAttempt("ref-2");
+
+        payment.CompleteAttempt(second.Id, "ref-2");
+        payment.FailAttempt(first.Id, "Paid twice; sent back.");
+
+        Assert.Equal(PaymentStatus.Succeeded, payment.Status);
+        Assert.Equal("ref-2", payment.GatewayReference);
+        Assert.Equal(PaymentAttemptStatus.Failed, first.Status);
+    }
+
+    [Fact]
+    public void CompleteAttempt_WhenAlreadySucceeded_Throws()
+    {
+        var payment = Payment.Create(Guid.NewGuid(), Money.Create(1000m));
+        var first = payment.StartAttempt("ref-1");
+        var second = payment.StartAttempt("ref-2");
+        payment.CompleteAttempt(first.Id, "ref-1");
+
+        Assert.Throws<InvalidOperationException>(() => payment.CompleteAttempt(second.Id, "ref-2"));
+    }
 }

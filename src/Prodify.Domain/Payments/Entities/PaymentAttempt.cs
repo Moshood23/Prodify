@@ -21,16 +21,17 @@ public class PaymentAttempt : Entity
     {
     }
 
-    internal PaymentAttempt(Guid id, Guid paymentId) : base(id)
+    internal PaymentAttempt(Guid id, Guid paymentId, string? gatewayReference) : base(id)
     {
         PaymentId = paymentId;
+        GatewayReference = string.IsNullOrWhiteSpace(gatewayReference) ? null : gatewayReference.Trim();
         Status = PaymentAttemptStatus.Pending;
         AttemptedAt = DateTime.UtcNow;
     }
 
-    internal static PaymentAttempt Create(Guid paymentId)
+    internal static PaymentAttempt Create(Guid paymentId, string? gatewayReference = null)
     {
-        return new PaymentAttempt(Guid.NewGuid(), paymentId);
+        return new PaymentAttempt(Guid.NewGuid(), paymentId, gatewayReference);
     }
 
     internal void MarkSucceeded(string gatewayReference)
