@@ -104,6 +104,9 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<SellerOrder> IApplicationDbContext.SellerOrders => SellerOrders;
     public new void Add<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Add(entity);
     public new void Remove<TEntity>(TEntity entity) where TEntity : class => Set<TEntity>().Remove(entity);
+    public Task LockPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default) =>
+        Payments.Where(p => p.Id == paymentId)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.RefundedAmount, p => p.RefundedAmount), cancellationToken);
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

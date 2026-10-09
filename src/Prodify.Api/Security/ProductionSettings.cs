@@ -43,6 +43,11 @@ public static class ProductionSettings
         if (!from.Contains('@') || from.EndsWith(".local", StringComparison.OrdinalIgnoreCase))
             problems.Add("Email__FromAddress must be an address on your own domain, e.g. noreply@prodify.ng.");
 
+        // Without it, the API would take every card order as paid without charging anyone.
+        var paystackKey = configuration["Paystack:SecretKey"] ?? "";
+        if (!paystackKey.StartsWith("sk_", StringComparison.Ordinal))
+            problems.Add("Paystack__SecretKey must be set (sk_test_... to try it out, sk_live_... for real money), or card payments are only simulated.");
+
         if (problems.Count > 0)
             throw new InvalidOperationException(
                 "The API is not configured for production:" + Environment.NewLine + string.Join(Environment.NewLine, problems));

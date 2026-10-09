@@ -94,7 +94,12 @@ public static class DependencyInjection
         services.AddScoped<IMessagePublisher, MediatRMessagePublisher>();
         services.AddScoped<OutboxProcessor>();
 
-        services.AddScoped<IPaymentService, SimulatedPaymentGateway>();
+        // With a Paystack secret key customers pay on Paystack; without one the test card form is used.
+        services.Configure<PaystackSettings>(configuration.GetSection("Paystack"));
+        if (!string.IsNullOrWhiteSpace(configuration["Paystack:SecretKey"]))
+            services.AddSingleton<IPaymentService, PaystackPaymentGateway>();
+        else
+            services.AddScoped<IPaymentService, SimulatedPaymentGateway>();
         services.AddScoped<INotificationService, LogNotificationService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.Configure<EmailSettings>(configuration.GetSection("Email"));

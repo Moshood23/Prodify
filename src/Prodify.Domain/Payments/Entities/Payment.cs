@@ -50,12 +50,13 @@ public class Payment : AuditableEntity
         return new Payment(Guid.NewGuid(), orderId, amount);
     }
 
-    public PaymentAttempt StartAttempt()
+    // Paystack gives each attempt its reference up front; the simulated gateway only on success.
+    public PaymentAttempt StartAttempt(string? gatewayReference = null)
     {
         if (IsCaptured)
             throw new InvalidOperationException("Cannot start a new attempt for an already-succeeded payment.");
 
-        var attempt = PaymentAttempt.Create(Id);
+        var attempt = PaymentAttempt.Create(Id, gatewayReference);
         _attempts.Add(attempt);
         Status = PaymentStatus.Processing;
 
@@ -64,6 +65,9 @@ public class Payment : AuditableEntity
 
     public void CompleteAttempt(Guid attemptId, string gatewayReference)
     {
+        if (IsCaptured)
+            throw new InvalidOperationException("This payment has already succeeded.");
+
         var attempt = GetAttemptOrThrow(attemptId);
 
         attempt.MarkSucceeded(gatewayReference);
@@ -77,7 +81,10 @@ public class Payment : AuditableEntity
         var attempt = GetAttemptOrThrow(attemptId);
 
         attempt.MarkFailed(reason);
-        Status = PaymentStatus.Failed;
+
+        // A late or duplicate attempt failing doesn't undo a payment that already went through.
+        if (!IsCaptured)
+            Status = PaymentStatus.Failed;
 
         AddDomainEvent(new PaymentFailedEvent(Id, OrderId, reason));
     }
