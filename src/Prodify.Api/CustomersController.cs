@@ -10,6 +10,7 @@ using Prodify.Application.Customers.Commands.SetDefaultCustomerAddress;
 using Prodify.Application.Customers.Commands.UpdateCustomerAddress;
 using Prodify.Application.Customers.Commands.UpdateMyProfile;
 using Prodify.Application.Customers.Queries.GetCustomer;
+using Prodify.Application.Customers.StoreCredit.Queries.GetMyStoreCredit;
 
 namespace Prodify.Api.Controllers;
 
@@ -41,6 +42,15 @@ public class CustomersController : ControllerBase
     public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetCustomerQuery { Id = _currentUser.GetRequiredCustomerId() }, cancellationToken);
+        return Ok(result);
+    }
+
+    // Store credit from refunds, and what it has been spent on.
+    [Authorize(Roles = Roles.Customer)]
+    [HttpGet("me/store-credit")]
+    public async Task<IActionResult> GetMyStoreCredit(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetMyStoreCreditQuery(), cancellationToken);
         return Ok(result);
     }
 

@@ -638,6 +638,52 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                     b.ToTable("CustomerAddresses", (string)null);
                 });
 
+            modelBuilder.Entity("Prodify.Domain.Customers.Entities.StoreCreditEntry", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<decimal>("Amount")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("CustomerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("nvarchar(200)");
+
+                b.Property<string>("Kind")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid?>("OrderId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.HasKey("Id");
+
+                b.HasIndex("CustomerId");
+
+                b.ToTable("StoreCreditEntries", (string)null);
+            });
+
+
             modelBuilder.Entity("Prodify.Domain.Customers.Entities.WishlistItem", b =>
             {
                 b.Property<Guid>("Id")
@@ -884,6 +930,16 @@ namespace Prodify.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Prodify.Domain.Ordering.Entities.Order", b =>
                 {
+                    b.Property<decimal>("CreditReturned")
+    .ValueGeneratedOnAdd()
+    .HasColumnType("decimal(18,2)")
+    .HasDefaultValue(0m);
+
+                    b.Property<decimal>("CreditUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 

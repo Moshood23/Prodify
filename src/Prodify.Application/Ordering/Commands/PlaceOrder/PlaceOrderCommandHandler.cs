@@ -10,6 +10,9 @@ using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Ordering.ValueObjects;
 using Prodify.Application.Shipping.DeliveryFees;
 using Prodify.Application.Promotions.Vouchers.Common;
+using Prodify.Application.Customers.StoreCredit;
+using Prodify.Domain.Customers.Entities;
+using Prodify.Domain.Payments.Entities;
 
 namespace Prodify.Application.Ordering.Commands.PlaceOrder;
 
@@ -87,24 +90,52 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
             voucher.RecordUse();
         }
 
+        if (request.UseStoreCredit)
+            await UseStoreCreditAsync(order, cancellationToken);
+
         _context.Add(order);
+
+        // Store credit can pay for a whole card order: then there's nothing left to pay online.
+        var paidWithCredit = paymentMethod == PaymentMethod.Card && order.Total.Amount == 0;
+        if (paidWithCredit)
+        {
+            var payment = Payment.Create(order.Id, order.Total);
+            var attempt = payment.StartAttempt();
+            payment.CompleteAttempt(attempt.Id, $"CREDIT-{order.OrderNumber.Value}");
+            _context.Add(payment);
+            order.MarkAsPaid(payment.Id);
+        }
 
         foreach (var (item, quantity) in stockToReserve)
         {
             var reservation = item.Reserve(quantity, TimeSpan.FromMinutes(PaymentWindowMinutes), order.Id);
 
-            // Pay on delivery: nothing left to wait for, the stock is committed to this order now.
-            if (paymentMethod == PaymentMethod.PayOnDelivery)
+            // Pay on delivery (or already paid): nothing left to wait for, the stock is committed to this order now.
+            if (paymentMethod == PaymentMethod.PayOnDelivery || paidWithCredit)
                 item.ConfirmReservation(reservation.Id);
         }
 
         cart.Clear();
 
         // Card orders are confirmed by email once they're paid.
-        if (paymentMethod == PaymentMethod.PayOnDelivery)
+        if (paymentMethod == PaymentMethod.PayOnDelivery || paidWithCredit)
             await _orderEmails.OrderConfirmedAsync(order, cancellationToken);
 
         return order.Id;
+    }
+
+    private async Task UseStoreCreditAsync(Order order, CancellationToken cancellationToken)
+    {
+        // Two checkouts at once must not both spend the same credit.
+        await _context.LockCustomerAsync(order.CustomerId, cancellationToken);
+
+        var balance = await _context.GetStoreCreditBalanceAsync(order.CustomerId, cancellationToken);
+        var amount = Math.Min(balance, order.Value);
+        if (amount <= 0)
+            return;
+
+        order.UseStoreCredit(amount);
+        _context.Add(StoreCreditEntry.Spend(order.CustomerId, amount, $"Used on order {order.OrderNumber.Value}", order.Id));
     }
 
     private async Task<InventoryItem?> SelectWarehouseWithStockAsync(

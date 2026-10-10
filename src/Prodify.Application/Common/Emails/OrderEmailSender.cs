@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Ordering.Common;
 using Prodify.Application.Ordering.SellerOrders.Common;
-using Prodify.Domain.Notifications.Entities;
 using Prodify.Domain.Notifications.Entities;
 using Prodify.Domain.Ordering.Entities;
 
@@ -27,12 +27,11 @@ public class OrderEmailSender
     public async Task OrderConfirmedAsync(Order order, CancellationToken cancellationToken)
     {
         var number = order.OrderNumber.Value;
+        var summary = PaymentSummary(order);
         Notify(order.CustomerId,
             order.PaymentMethod == PaymentMethod.Card ? NotificationType.PaymentSuccessful : NotificationType.OrderPlaced,
             order.PaymentMethod == PaymentMethod.Card ? "Payment received" : "Order placed",
-            order.PaymentMethod == PaymentMethod.Card
-                ? $"We've received {Naira.Format(order.Total.Amount)} for order {number}. The seller will now prepare it."
-                : $"Order {number} is placed. You'll pay {Naira.Format(order.Total.Amount)} when it arrives.",
+            summary,
             $"/orders/{order.Id}");
 
         var customer = await CustomerAsync(order, cancellationToken);
@@ -47,9 +46,7 @@ public class OrderEmailSender
                 new[]
                 {
                     $"Hi {customer.Value.FirstName},",
-                    paidByCard
-                        ? $"We've received {Naira.Format(order.Total.Amount)} for order {order.OrderNumber.Value}. The seller will now prepare it."
-                        : $"Order {order.OrderNumber.Value} is placed. You'll pay {Naira.Format(order.Total.Amount)} when it arrives.",
+                    summary,
                     $"Delivering to: {address.RecipientName}, {address.AddressLine1}, {address.City}, {address.State}.",
                 },
                 ("View your order", _urls.Page($"/orders/{order.Id}")),
@@ -58,6 +55,9 @@ public class OrderEmailSender
                     .Append(("Delivery", order.DeliveryFee == 0 ? "Free" : Naira.Format(order.DeliveryFee), false))
                     .Concat(order.Discount > 0
                         ? new[] { ($"Voucher {order.VoucherCode}", "-" + Naira.Format(order.Discount), false) }
+                        : Array.Empty<(string, string, bool)>())
+                    .Concat(order.CreditUsed > 0
+                        ? new[] { ("Store credit", "-" + Naira.Format(order.CreditUsed), false) }
                         : Array.Empty<(string, string, bool)>())
                     .Append(("Total", Naira.Format(order.Total.Amount), true))));
         }
@@ -140,14 +140,30 @@ public class OrderEmailSender
             rows: ItemRows(part.Items.Select(i => (i.ProductName, i.Quantity, i.UnitPrice.Amount)))));
     }
 
+    // One line saying what was paid, or what is still to pay on delivery.
+    private static string PaymentSummary(Order order)
+    {
+        var number = order.OrderNumber.Value;
+        var credit = order.CreditUsed > 0 ? $" Store credit paid {Naira.Format(order.CreditUsed)}." : "";
+
+        if (order.PaymentMethod == PaymentMethod.Card)
+            return order.Total.Amount == 0
+                ? $"Your store credit paid for order {number}. The seller will now prepare it."
+                : $"We've received {Naira.Format(order.Total.Amount)} for order {number}.{credit} The seller will now prepare it.";
+
+        return order.Total.Amount == 0
+            ? $"Order {number} is placed and your store credit covers it, so there's nothing to pay when it arrives."
+            : $"Order {number} is placed. You'll pay {Naira.Format(order.Total.Amount)} when it arrives.{credit}";
+    }
+
     // Some or all of an order was cancelled. Needs the parts' Items.
-    // refunded: what was sent back to the customer's card (0 if nothing).
+    // refund: what went back to the customer's card and to their store credit.
     // tellSellers: also tell the sellers of these parts to stop, if they had been asked to prepare them.
     public async Task PartsCancelledAsync(
         Order order,
         IReadOnlyCollection<SellerOrder> parts,
         string reason,
-        decimal refunded,
+        RefundSplit refund,
         bool tellSellers,
         CancellationToken cancellationToken)
     {
@@ -160,7 +176,8 @@ public class OrderEmailSender
             (wholeOrder
                 ? $"Order {order.OrderNumber.Value} was cancelled."
                 : $"Some items in order {order.OrderNumber.Value} were cancelled.")
-                + (refunded > 0 ? $" {Naira.Format(refunded)} was refunded to your card." : "")
+                + (refund.ToCard > 0 ? $" {Naira.Format(refund.ToCard)} was refunded to your card." : "")
+                + (refund.ToCredit > 0 ? $" {Naira.Format(refund.ToCredit)} went back to your store credit." : "")
                 + $" Reason: {reason}",
             $"/orders/{order.Id}");
 
@@ -174,8 +191,10 @@ public class OrderEmailSender
                     : $"Some items in your order {order.OrderNumber.Value} have been cancelled. The rest of your order is still coming.",
                 $"Reason: {reason}",
             };
-            if (refunded > 0)
-                lines.Add($"We've refunded {Naira.Format(refunded)} to your card. Depending on your bank, it can take a few working days to show.");
+            if (refund.ToCard > 0)
+                lines.Add($"We've refunded {Naira.Format(refund.ToCard)} to your card. Depending on your bank, it can take a few working days to show.");
+            if (refund.ToCredit > 0)
+                lines.Add($"{Naira.Format(refund.ToCredit)} went back to your store credit, ready to use on your next order.");
 
             _emails.Enqueue(customer.Value.Email, customer.Value.FirstName, EmailLayout.Build(
                 wholeOrder ? $"Order {order.OrderNumber.Value} cancelled" : $"Items cancelled from order {order.OrderNumber.Value}",

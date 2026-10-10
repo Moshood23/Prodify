@@ -21,6 +21,9 @@ public class OrderDto
     // Voucher used at checkout, if any, and the naira it took off.
     public string? VoucherCode { get; set; }
     public decimal Discount { get; set; }
+    // Store credit put towards the order, and how much of it went back to the customer's credit.
+    public decimal CreditUsed { get; set; }
+    public decimal CreditReturned { get; set; }
     public decimal Total { get; set; }
     public decimal RefundedAmount { get; set; }
 

@@ -64,6 +64,14 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasColumnType("decimal(18,2)")
             .HasDefaultValue(0m);
 
+        builder.Property(o => o.CreditUsed)
+    .HasColumnType("decimal(18,2)")
+    .HasDefaultValue(0m);
+        builder.Property(o => o.CreditReturned)
+            .HasColumnType("decimal(18,2)")
+            .HasDefaultValue(0m);
+        builder.Ignore(o => o.CreditLeft);
+        builder.Ignore(o => o.Value);
 
         builder.Ignore(o => o.ItemsTotal);
         builder.Ignore(o => o.Total); builder.Ignore(o => o.Status);

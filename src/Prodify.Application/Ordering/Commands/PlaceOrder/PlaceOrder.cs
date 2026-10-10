@@ -18,4 +18,7 @@ public class PlaceOrderCommand : IRequest<Guid>
 
     // Optional voucher code, e.g. WELCOME10.
     public string? VoucherCode { get; set; }
+
+    // Put the customer's store credit towards the order (as much as it needs).
+    public bool UseStoreCredit { get; set; }
 }
