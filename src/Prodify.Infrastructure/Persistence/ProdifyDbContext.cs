@@ -93,6 +93,8 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Seller> IApplicationDbContext.Sellers => Sellers;
     IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
     IQueryable<Prodify.Domain.Promotions.Entities.Voucher> IApplicationDbContext.Vouchers => Vouchers;
+    IQueryable<StoreCreditEntry> IApplicationDbContext.StoreCreditEntries => StoreCreditEntries;
+    public DbSet<StoreCreditEntry> StoreCreditEntries => Set<StoreCreditEntry>();
     IQueryable<Domain.Shipping.Entities.Shipment> IApplicationDbContext.Shipments => Shipments;
     IQueryable<DeliveryFee> IApplicationDbContext.DeliveryFees => DeliveryFees;
     IQueryable<ProductReview> IApplicationDbContext.ProductReviews => ProductReviews;
@@ -107,6 +109,11 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     public Task LockPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default) =>
         Payments.Where(p => p.Id == paymentId)
             .ExecuteUpdateAsync(s => s.SetProperty(p => p.RefundedAmount, p => p.RefundedAmount), cancellationToken);
+
+    // Same trick on the customer's row, so two checkouts can't spend the same store credit.
+    public Task LockCustomerAsync(Guid customerId, CancellationToken cancellationToken = default) =>
+        Customers.Where(c => c.Id == customerId)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsActive, c => c.IsActive), cancellationToken);
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

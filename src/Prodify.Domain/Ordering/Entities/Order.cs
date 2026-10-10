@@ -39,6 +39,12 @@ public class Order : AuditableEntity
     public string? VoucherCode { get; private set; }
     public decimal Discount { get; private set; }
 
+
+    // Store credit put towards the order at checkout, and how much of it has since gone back
+    // to the customer's credit (cancelled or returned parts).
+    public decimal CreditUsed { get; private set; }
+    public decimal CreditReturned { get; private set; }
+    public decimal CreditLeft => CreditUsed - CreditReturned;
     public ICollection<SellerOrder> SellerOrders => _sellerOrders;
     public ICollection<OrderItem> Items => _items;
 
@@ -46,9 +52,11 @@ public class Order : AuditableEntity
         .Select(i => i.Subtotal)
         .Aggregate(Money.Zero(), (acc, next) => acc.Add(next));
 
-    // What the customer pays: items plus delivery, minus any voucher.
-    public Money Total => Money.Create(ItemsTotal.Amount + DeliveryFee - Discount);
+    // The order's value: items plus delivery, minus any voucher.
+    public decimal Value => ItemsTotal.Amount + DeliveryFee - Discount;
 
+    // What the customer still pays by card or cash: the value minus any store credit used.
+    public Money Total => Money.Create(Value - CreditUsed);
     public OrderStatus Status => ComputeStatus();
 
     private Order()
@@ -119,6 +127,27 @@ public class Order : AuditableEntity
 
         VoucherCode = code;
         Discount = discount;
+    }
+
+    // Store credit can pay for some or all of the order, once, after any voucher.
+    public void UseStoreCredit(decimal amount)
+    {
+        if (CreditUsed > 0)
+            throw new InvalidOperationException("Store credit has already been used on this order.");
+
+        if (amount <= 0 || amount > Value)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Store credit must be more than 0 and no more than the order.");
+
+        CreditUsed = amount;
+    }
+
+    // Some of the credit used goes back to the customer.
+    public void ReturnCredit(decimal amount)
+    {
+        if (amount <= 0 || amount > CreditLeft)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Can't give back more store credit than the order used.");
+
+        CreditReturned += amount;
     }
 
     // The part of the voucher discount that belongs to these seller parts, in proportion to their items.

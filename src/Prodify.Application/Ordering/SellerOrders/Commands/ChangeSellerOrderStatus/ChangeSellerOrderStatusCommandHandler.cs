@@ -62,14 +62,14 @@ public class ChangeSellerOrderStatusCommandHandler : IRequestHandler<ChangeSelle
                 Ensure(SellerOrderRules.CanCancel(sellerOrder), sellerOrder, "cancelled");
 
                 // The customer gets this part's money back (refund first: if it fails, nothing changes).
-                var refunded = await _context.RefundIfPaidAsync(_paymentService, order, OrderRefunds.RefundFor(order, new[] { sellerOrder }), cancellationToken);
+                var refund = await _context.RefundCancelledPartsAsync(_paymentService, order, new[] { sellerOrder }, cancellationToken);
                 sellerOrder.TransitionTo(SellerOrderStatus.Cancelled, request.Reason!.Trim());
 
                 var variantIds = sellerOrder.Items.Select(i => i.ProductVariantId).ToList();
                 await _context.ReleaseSellerOrderStockAsync(order.Id, variantIds, cancellationToken);
 
                 // The seller did this themselves, so only the customer is told.
-                await _orderEmails.PartsCancelledAsync(order, new[] { sellerOrder }, request.Reason!.Trim(), refunded, tellSellers: false, cancellationToken);
+                await _orderEmails.PartsCancelledAsync(order, new[] { sellerOrder }, request.Reason!.Trim(), refund, tellSellers: false, cancellationToken);
                 break;
         }
 

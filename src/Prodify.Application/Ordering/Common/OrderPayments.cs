@@ -15,9 +15,11 @@ public static class OrderPayments
         if (order.PaymentMethod != PaymentMethod.PayOnDelivery || order.IsPaid || order.Status != OrderStatus.Delivered)
             return;
 
-        // The delivered parts plus the delivery fee, less their share of any voucher discount.
+        // The delivered parts plus the delivery fee, less their share of any voucher discount
+        // and less any store credit still on the order.
         var delivered = order.SellerOrders.Where(so => so.Status == SellerOrderStatus.Delivered).ToList();
-        var collected = Money.Create(delivered.Sum(so => so.Total.Amount) + order.DeliveryFee - order.DiscountShare(delivered));
+        var value = delivered.Sum(so => so.Total.Amount) + order.DeliveryFee - order.DiscountShare(delivered);
+        var collected = Money.Create(Math.Max(0, value - order.CreditLeft));
 
         var payment = Payment.Create(order.Id, collected);
         var attempt = payment.StartAttempt();

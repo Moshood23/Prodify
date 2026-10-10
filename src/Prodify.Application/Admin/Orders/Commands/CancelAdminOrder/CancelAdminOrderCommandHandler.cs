@@ -36,11 +36,11 @@ public class CancelAdminOrderCommandHandler : IRequestHandler<CancelAdminOrderCo
 
         var cancelling = order.SellerOrders.Where(OrderRules.IsStoppable).ToList();
         // Refund first: if the gateway says no, nothing is cancelled.
-        var refunded = await _context.RefundIfPaidAsync(_paymentService, order, OrderRefunds.RefundFor(order, cancelling), cancellationToken);
+        var refund = await _context.RefundCancelledPartsAsync(_paymentService, order, cancelling, cancellationToken);
 
         order.Cancel(request.Reason.Trim());
         await _context.ReleaseOrderStockAsync(order.Id, cancellationToken);
 
-        await _orderEmails.PartsCancelledAsync(order, cancelling, request.Reason.Trim(), refunded, tellSellers: true, cancellationToken);
+        await _orderEmails.PartsCancelledAsync(order, cancelling, request.Reason.Trim(), refund, tellSellers: true, cancellationToken);
     }
 }

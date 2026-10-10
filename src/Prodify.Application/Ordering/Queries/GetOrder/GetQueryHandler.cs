@@ -72,6 +72,8 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
             DeliveryFee = order.DeliveryFee,
             VoucherCode = order.VoucherCode,
             Discount = order.Discount,
+            CreditUsed = order.CreditUsed,
+            CreditReturned = order.CreditReturned,
             Total = order.Total.Amount,
             RefundedAmount = refundedAmount,
             CanCancel = OrderRules.CanBeCancelled(order),

@@ -38,13 +38,13 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand>
 
         // Refund first: if the gateway says no, nothing is cancelled.
         var cancelling = order.SellerOrders.Where(OrderRules.IsStoppable).ToList();
-        var refunded = await _context.RefundIfPaidAsync(_paymentService, order, OrderRefunds.RefundFor(order, cancelling), cancellationToken);
+        var refund = await _context.RefundCancelledPartsAsync(_paymentService, order, cancelling, cancellationToken);
 
         order.Cancel(request.Reason);
 
         await _context.ReleaseOrderStockAsync(order.Id, cancellationToken);
 
         await _orderEmails.PartsCancelledAsync(
-            order, cancelling, string.IsNullOrWhiteSpace(request.Reason) ? "Cancelled by you" : request.Reason.Trim(), refunded, tellSellers: true, cancellationToken);
+            order, cancelling, string.IsNullOrWhiteSpace(request.Reason) ? "Cancelled by you" : request.Reason.Trim(), refund, tellSellers: true, cancellationToken);
     }
 }

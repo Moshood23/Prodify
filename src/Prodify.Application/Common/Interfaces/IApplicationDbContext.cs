@@ -48,9 +48,14 @@ public interface IApplicationDbContext
 
     IQueryable<Domain.Promotions.Entities.Voucher> Vouchers { get; }
 
+    IQueryable<StoreCreditEntry> StoreCreditEntries { get; }
+
     void Add<TEntity>(TEntity entity) where TEntity : class;
     void Remove<TEntity>(TEntity entity) where TEntity : class;
     Task LockPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default);
+
+    // The same for a customer, e.g. while spending their store credit.
+    Task LockCustomerAsync(Guid customerId, CancellationToken cancellationToken = default);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
