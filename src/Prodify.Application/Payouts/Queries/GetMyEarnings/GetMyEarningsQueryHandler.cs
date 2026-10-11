@@ -44,7 +44,9 @@ public class GetMyEarningsQueryHandler : IRequestHandler<GetMyEarningsQuery, Ear
                 NetAmount = e.NetAmount,
                 EarnedAt = e.EarnedAt,
                 AvailableAt = e.AvailableAt,
-                IsAvailable = e.AvailableAt <= now,
+                IsAvailable = e.AvailableAt <= now && !e.HeldForReturn,
+                HeldForReturn = e.HeldForReturn,
+
             })
             .OrderByDescending(e => e.EarnedAt)
             .Take(RecentCount)

@@ -21,6 +21,9 @@ public class SellerEarning : Entity
     public DateTime EarnedAt { get; private set; }
     public DateTime AvailableAt { get; private set; }
 
+    // A customer asked to return items from this part: the money waits until that is settled.
+    public bool HeldForReturn { get; private set; }
+
     private SellerEarning()
     {
     }
@@ -50,5 +53,20 @@ public class SellerEarning : Entity
             EarnedAt = earnedAt,
             AvailableAt = earnedAt + HoldPeriod,
         };
+    }
+
+    public void HoldForReturn() => HeldForReturn = true;
+
+    public void ReleaseHold() => HeldForReturn = false;
+
+    // Returned items come off the sales, and the commission on them goes back to the seller.
+    public void RecordReturn(decimal returnedSales)
+    {
+        if (returnedSales <= 0 || returnedSales > Sales)
+            throw new ArgumentOutOfRangeException(nameof(returnedSales), "Returned sales must be more than 0 and no more than the sales.");
+
+        Sales -= returnedSales;
+        Commission = Math.Round(Sales * CommissionRate / 100m, 2, MidpointRounding.AwayFromZero);
+        NetAmount = Sales - Commission;
     }
 }

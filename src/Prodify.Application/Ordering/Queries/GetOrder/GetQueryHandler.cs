@@ -4,6 +4,7 @@ using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
 using Prodify.Application.Ordering.Common;
+using Prodify.Application.Returns.Common;
 using Prodify.Domain.Ordering.Entities;
 
 namespace Prodify.Application.Ordering.Queries.GetOrder;
@@ -23,7 +24,7 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
     {
         var order = await _context.Orders
             .Include(o => o.Items)
-                        .Include(o => o.SellerOrders)
+            .Include(o => o.SellerOrders)
                 .ThenInclude(so => so.StatusHistory)
             .Include(o => o.SellerOrders)
                 .ThenInclude(so => so.Items)
@@ -56,6 +57,15 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
         var refundedAmount = await _context.Payments
             .Where(p => p.OrderId == order.Id)
             .SumAsync(p => (decimal?)p.RefundedAmount, cancellationToken) ?? 0;
+
+        // Returns are open while the seller's money for a delivered part is still held.
+        var partIds = order.SellerOrders.Select(so => so.Id).ToList();
+        var returnDeadlines = await _context.SellerEarnings
+            .Where(e => partIds.Contains(e.SellerOrderId))
+            .ToDictionaryAsync(e => e.SellerOrderId, e => e.AvailableAt, cancellationToken);
+        var returns = (await _context.ToReturnDtosAsync(_context.ReturnRequests.Where(r => r.OrderId == order.Id), partIds.Count, cancellationToken))
+            .ToDictionary(r => r.SellerOrderId);
+        var now = DateTime.UtcNow;
 
         var address = order.ShippingAddress;
 
@@ -109,7 +119,12 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderDto>
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice.Amount,
                     Subtotal = i.UnitPrice.Amount * i.Quantity
-                }).ToList()
+                }).ToList(),
+                ReturnDeadline = so.Status == SellerOrderStatus.Delivered && returnDeadlines.TryGetValue(so.Id, out var end) ? end : null,
+                CanReturn = so.Status == SellerOrderStatus.Delivered
+                    && returnDeadlines.TryGetValue(so.Id, out var deadline) && now < deadline
+                    && !returns.ContainsKey(so.Id),
+                Return = returns.GetValueOrDefault(so.Id)
             }).ToList()
         };
     }

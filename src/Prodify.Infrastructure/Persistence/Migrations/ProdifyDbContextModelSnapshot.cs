@@ -939,7 +939,6 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m);
-
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
@@ -1281,6 +1280,11 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                 b.Property<DateTime>("EarnedAt")
                     .HasColumnType("datetime2");
 
+                b.Property<bool>("HeldForReturn")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("bit")
+                .HasDefaultValue(false);
+
                 b.Property<decimal>("NetAmount")
                     .HasColumnType("decimal(18,2)");
 
@@ -1446,6 +1450,119 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                 b.ToTable("Vouchers", (string)null);
             });
 
+            modelBuilder.Entity("Prodify.Domain.Returns.Entities.ReturnItem", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("ProductName")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("nvarchar(200)");
+
+                b.Property<Guid>("ProductVariantId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<int>("Quantity")
+                    .HasColumnType("int");
+
+                b.Property<Guid>("ReturnRequestId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<decimal>("UnitPrice")
+                    .HasColumnType("decimal(18,2)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ReturnRequestId");
+
+                b.ToTable("ReturnItems", (string)null);
+            });
+
+            modelBuilder.Entity("Prodify.Domain.Returns.Entities.ReturnRequest", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("AdminNote")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("CustomerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("CustomerNote")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
+
+                b.Property<string>("Details")
+                    .HasMaxLength(1000)
+                    .HasColumnType("nvarchar(1000)");
+
+                b.Property<DateTime?>("ModifiedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ModifiedBy")
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<Guid>("OrderId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("Reason")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
+
+                b.Property<decimal>("RefundAmount")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<decimal>("RefundedAsCredit")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<decimal>("RefundedToCard")
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<DateTime?>("ResolvedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<Guid>("SellerId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("SellerNote")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
+
+                b.Property<Guid>("SellerOrderId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("Status")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("CustomerId");
+
+                b.HasIndex("SellerOrderId")
+                    .IsUnique();
+
+                b.HasIndex("Status");
+
+                b.HasIndex("SellerId", "Status");
+
+                b.ToTable("ReturnRequests", (string)null);
+            });
+
+
             modelBuilder.Entity("Prodify.Domain.Sellers.Entities.Seller", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1504,6 +1621,24 @@ namespace Prodify.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Sellers", (string)null);
                 });
+
+            modelBuilder.Entity("Prodify.Domain.Returns.Entities.ReturnItem", b =>
+            {
+                b.HasOne("Prodify.Domain.Returns.Entities.ReturnRequest", null)
+                    .WithMany("Items")
+                    .HasForeignKey("ReturnRequestId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+            modelBuilder.Entity("Prodify.Domain.Returns.Entities.ReturnRequest", b =>
+            {
+                b.HasOne("Prodify.Domain.Ordering.Entities.SellerOrder", null)
+                    .WithMany()
+                    .HasForeignKey("SellerOrderId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+            });
 
             modelBuilder.Entity("Prodify.Domain.Sellers.Entities.SellerAddress", b =>
                 {
@@ -2274,6 +2409,11 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("Attempts");
                 });
+
+            modelBuilder.Entity("Prodify.Domain.Returns.Entities.ReturnRequest", b =>
+            {
+                b.Navigation("Items");
+            });
 
             modelBuilder.Entity("Prodify.Domain.Sellers.Entities.Seller", b =>
                 {

@@ -56,6 +56,11 @@ public class SellerOrderDto
     public decimal Total { get; set; }
     public string? CancelReason { get; set; }
     public List<SellerOrderItemDto> Items { get; set; } = new();
+
+    // Returns: the customer can ask until ReturnDeadline (7 days after delivery), once per part.
+    public bool CanReturn { get; set; }
+    public DateTime? ReturnDeadline { get; set; }
+    public Prodify.Application.Returns.Common.ReturnDto? Return { get; set; }
 }
 
 public class SellerOrderItemDto
