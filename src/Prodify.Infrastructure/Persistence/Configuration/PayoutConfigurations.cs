@@ -31,6 +31,7 @@ public class SellerEarningConfiguration : IEntityTypeConfiguration<SellerEarning
         builder.Property(e => e.CommissionRate).HasColumnType("decimal(5,2)");
         builder.Property(e => e.Commission).HasColumnType("decimal(18,2)");
         builder.Property(e => e.NetAmount).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.HeldForReturn).HasDefaultValue(false);
 
         // One earning per delivered part.
         builder.HasIndex(e => e.SellerOrderId).IsUnique();

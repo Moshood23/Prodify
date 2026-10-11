@@ -50,6 +50,8 @@ public interface IApplicationDbContext
 
     IQueryable<StoreCreditEntry> StoreCreditEntries { get; }
 
+    IQueryable<Domain.Returns.Entities.ReturnRequest> ReturnRequests { get; }
+
     void Add<TEntity>(TEntity entity) where TEntity : class;
     void Remove<TEntity>(TEntity entity) where TEntity : class;
     Task LockPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default);

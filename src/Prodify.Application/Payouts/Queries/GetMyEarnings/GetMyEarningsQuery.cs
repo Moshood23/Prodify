@@ -42,4 +42,5 @@ public class EarningDto
 
     // Past the hold, so it counts towards what can be withdrawn.
     public bool IsAvailable { get; set; }
+    public bool HeldForReturn { get; set; }
 }

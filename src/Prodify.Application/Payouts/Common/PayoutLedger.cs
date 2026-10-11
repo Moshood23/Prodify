@@ -6,7 +6,7 @@ using Prodify.Domain.Payouts.Entities;
 namespace Prodify.Application.Payouts.Common;
 
 // A seller's money, worked out from their earnings and payouts:
-// OnHold      = delivered less than 7 days ago
+// OnHold      = delivered less than 7 days ago, or waiting on a return
 // Available   = past the hold, minus payouts already paid or requested
 // InProgress  = requested, waiting for an admin to pay it
 public record SellerBalance(decimal OnHold, decimal Available, decimal InProgress, decimal PaidOut, decimal TotalEarned);
@@ -35,8 +35,8 @@ public static class PayoutLedger
         var earnings = context.SellerEarnings.Where(e => e.SellerId == sellerId);
         var payouts = context.SellerPayouts.Where(p => p.SellerId == sellerId);
 
-        var cleared = await earnings.Where(e => e.AvailableAt <= now).SumAsync(e => (decimal?)e.NetAmount, cancellationToken) ?? 0;
-        var onHold = await earnings.Where(e => e.AvailableAt > now).SumAsync(e => (decimal?)e.NetAmount, cancellationToken) ?? 0;
+        var cleared = await earnings.Where(e => e.AvailableAt <= now && !e.HeldForReturn).SumAsync(e => (decimal?)e.NetAmount, cancellationToken) ?? 0;
+        var onHold = await earnings.Where(e => e.AvailableAt > now || e.HeldForReturn).SumAsync(e => (decimal?)e.NetAmount, cancellationToken) ?? 0;
         var paidOut = await payouts.Where(p => p.Status == PayoutStatus.Paid).SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
         var inProgress = await payouts.Where(p => p.Status == PayoutStatus.Requested).SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
 

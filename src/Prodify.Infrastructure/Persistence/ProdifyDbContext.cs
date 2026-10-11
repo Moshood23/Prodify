@@ -94,7 +94,9 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
     IQueryable<Prodify.Domain.Promotions.Entities.Voucher> IApplicationDbContext.Vouchers => Vouchers;
     IQueryable<StoreCreditEntry> IApplicationDbContext.StoreCreditEntries => StoreCreditEntries;
+    IQueryable<Prodify.Domain.Returns.Entities.ReturnRequest> IApplicationDbContext.ReturnRequests => ReturnRequests;
     public DbSet<StoreCreditEntry> StoreCreditEntries => Set<StoreCreditEntry>();
+    public DbSet<Prodify.Domain.Returns.Entities.ReturnRequest> ReturnRequests => Set<Prodify.Domain.Returns.Entities.ReturnRequest>();
     IQueryable<Domain.Shipping.Entities.Shipment> IApplicationDbContext.Shipments => Shipments;
     IQueryable<DeliveryFee> IApplicationDbContext.DeliveryFees => DeliveryFees;
     IQueryable<ProductReview> IApplicationDbContext.ProductReviews => ProductReviews;

@@ -153,14 +153,15 @@ public class Order : AuditableEntity
     // The part of the voucher discount that belongs to these seller parts, in proportion to their items.
     // Used so a refund or cash collection for some parts gives back only their share of the discount.
     // Works from the seller parts (all of them, cancelled too), which are loaded wherever parts change.
-    public decimal DiscountShare(IEnumerable<SellerOrder> parts)
+    public decimal DiscountShare(IEnumerable<SellerOrder> parts) => DiscountShareOf(parts.Sum(p => p.Total.Amount));
+
+    public decimal DiscountShareOf(decimal itemsValue)
     {
         var allParts = _sellerOrders.Sum(so => so.Total.Amount);
         if (Discount == 0 || allParts == 0)
             return 0;
 
-        var partsTotal = parts.Sum(p => p.Total.Amount);
-        return Math.Round(Discount * partsTotal / allParts, 2, MidpointRounding.AwayFromZero);
+        return Math.Round(Discount * itemsValue / allParts, 2, MidpointRounding.AwayFromZero);
     }
 
     public void MarkAsPaid(Guid paymentId)

@@ -11,10 +11,10 @@ public enum NotificationType
     PaymentSuccessful,
     PaymentFailed,
     General,
-    // For sellers:
     NewOrder,
     AccountUpdate,
-    Payout
+    Payout,
+    Return
 }
 
 public class Notification : AuditableEntity
