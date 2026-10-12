@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Promotions.FlashSales.Common;
 using Prodify.Domain.Inventory.Entities;
 
 namespace Prodify.Application.Ordering.Common;
 
 // Moves the stock held for an order through its life:
 // placed -> reserved, paid (or pay on delivery) -> confirmed (leaves the shelf),
-// cancelled -> released (reserved) or returned (confirmed).
+// cancelled -> released (reserved) or returned (confirmed). Flash sale units taken by the order go back to the sale too.
 public static class OrderStock
 {
     public static async Task<bool> HasActiveReservationsAsync(
@@ -37,6 +38,8 @@ public static class OrderStock
                     item.ReturnConfirmedReservation(reservation.Id, "Order cancelled");
             }
         }
+
+        await context.ReleaseFlashSaleUnitsAsync(orderId, null, cancellationToken);
     }
 
     // One seller cancels their part of an order: only their products' stock goes back.
@@ -56,6 +59,8 @@ public static class OrderStock
                     item.ReturnConfirmedReservation(reservation.Id, "Cancelled by seller");
             }
         }
+
+        await context.ReleaseFlashSaleUnitsAsync(orderId, variantIds, cancellationToken);
     }
 
 

@@ -46,11 +46,11 @@ public class CheckVoucherQueryHandler : IRequestHandler<CheckVoucherQuery, Vouch
         if (items.Count == 0)
             throw new BusinessRuleException("Your cart is empty.");
 
-        // Today's prices, like the order itself.
-        var variants = await _context.GetCartVariantsAsync(items.Select(i => i.ProductVariantId).ToList(), cancellationToken);
+        // Today's prices (flash sales included), like the order itself.
+        var variants = await _context.GetCartVariantsAsync(items.Select(i => i.ProductVariantId).ToList(), cancellationToken, customerId);
         var itemsTotal = items
             .Where(i => variants.TryGetValue(i.ProductVariantId, out var v) && v.IsAvailable)
-            .Sum(i => variants[i.ProductVariantId].Price * i.Quantity);
+            .Sum(i => variants[i.ProductVariantId].PriceFor(i.Quantity) * i.Quantity);
 
         var (voucher, discount) = await _context.GetUsableVoucherAsync(request.Code, itemsTotal, cancellationToken);
 

@@ -54,6 +54,8 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     public DbSet<Notification> Notifications => Set<Notification>();
 
     public DbSet<Prodify.Domain.Promotions.Entities.Voucher> Vouchers => Set<Prodify.Domain.Promotions.Entities.Voucher>();
+    public DbSet<Prodify.Domain.Promotions.Entities.FlashSale> FlashSales => Set<Prodify.Domain.Promotions.Entities.FlashSale>();
+    public DbSet<Prodify.Domain.Promotions.Entities.FlashSaleClaim> FlashSaleClaims => Set<Prodify.Domain.Promotions.Entities.FlashSaleClaim>();
 
     // Shipping
     public DbSet<Shipment> Shipments => Set<Shipment>();
@@ -93,6 +95,8 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Seller> IApplicationDbContext.Sellers => Sellers;
     IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
     IQueryable<Prodify.Domain.Promotions.Entities.Voucher> IApplicationDbContext.Vouchers => Vouchers;
+    IQueryable<Prodify.Domain.Promotions.Entities.FlashSale> IApplicationDbContext.FlashSales => FlashSales;
+    IQueryable<Prodify.Domain.Promotions.Entities.FlashSaleClaim> IApplicationDbContext.FlashSaleClaims => FlashSaleClaims;
     IQueryable<StoreCreditEntry> IApplicationDbContext.StoreCreditEntries => StoreCreditEntries;
     IQueryable<Prodify.Domain.Returns.Entities.ReturnRequest> IApplicationDbContext.ReturnRequests => ReturnRequests;
     public DbSet<StoreCreditEntry> StoreCreditEntries => Set<StoreCreditEntry>();
@@ -116,6 +120,12 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     public Task LockCustomerAsync(Guid customerId, CancellationToken cancellationToken = default) =>
         Customers.Where(c => c.Id == customerId)
             .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsActive, c => c.IsActive), cancellationToken);
+
+    // And on a flash sale, so two checkouts can't both take its last units.
+    public Task LockFlashSaleAsync(Guid flashSaleId, CancellationToken cancellationToken = default) =>
+        FlashSales.Where(f => f.Id == flashSaleId)
+            .ExecuteUpdateAsync(s => s.SetProperty(f => f.SoldQuantity, f => f.SoldQuantity), cancellationToken);
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

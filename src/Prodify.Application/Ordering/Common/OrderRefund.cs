@@ -95,7 +95,7 @@ public static class OrderRefunds
 
         var result = await paymentService.RefundAsync(payment.GatewayReference, Money.Create(refund), cancellationToken);
         if (!result.Succeeded)
-            throw new BusinessRuleException($"The refund failed: {result.FailureReason ?? "unknown error"}. Nothing was cancelled.");
+            throw new BusinessRuleException($"The refund failed: {result.FailureReason ?? "unknown error"}. Nothing was changed.");
 
         payment.RecordRefund(refund);
         return refund;

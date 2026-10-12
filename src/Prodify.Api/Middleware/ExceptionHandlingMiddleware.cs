@@ -77,7 +77,7 @@ public class ExceptionHandlingMiddleware
             // Only treat them as a 400 when they come from Prodify.Domain; anywhere else they are bugs.
             ArgumentException or InvalidOperationException when IsFromDomain(exception) => (
                 HttpStatusCode.BadRequest,
-                exception.Message,
+                MessageOf(exception),
                 null),
 
             _ => (
@@ -103,6 +103,12 @@ public class ExceptionHandlingMiddleware
 
         await context.Response.WriteAsync(json);
     }
+
+    // ArgumentException adds " (Parameter 'name')" to its message; shoppers don't need to see that.
+    private static string MessageOf(Exception exception) =>
+        exception is ArgumentException { ParamName: { } name } argument
+            ? argument.Message.Replace($" (Parameter '{name}')", "")
+            : exception.Message;
 
     private static bool IsFromDomain(Exception exception) =>
         exception.TargetSite?.DeclaringType?.Namespace?.StartsWith("Prodify.Domain", StringComparison.Ordinal) == true;

@@ -5,6 +5,7 @@ using Prodify.Application.Catalog.Products.DTOs;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Promotions.FlashSales.Common;
 using Prodify.Domain.Catalog.Entities;
 
 namespace Prodify.Application.Catalog.Products.Queries.GetProduct;
@@ -84,7 +85,9 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductDe
             .OrderBy(v => v.Price)
             .ToListAsync(cancellationToken);
 
-        var stock = await _context.GetAvailableStockAsync(variants.Select(v => v.Id).ToList(), cancellationToken);
+        var variantIds = variants.Select(v => v.Id).ToList();
+        var stock = await _context.GetAvailableStockAsync(variantIds, cancellationToken);
+        var flashSales = await _context.GetFlashSaleOffersAsync(variantIds, _currentUser.CustomerId, DateTime.UtcNow, cancellationToken);
 
         product.Variants = variants
             .Select(v => new ProductVariantDto
@@ -94,7 +97,8 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductDe
                 Name = v.Name,
                 Price = v.Price,
                 CompareAtPrice = v.CompareAtPrice,
-                AvailableQuantity = stock.GetValueOrDefault(v.Id)
+                AvailableQuantity = stock.GetValueOrDefault(v.Id),
+                FlashSale = flashSales.TryGetValue(v.Id, out var offer) ? FlashSaleOfferDto.From(offer) : null
             })
             .ToList();
 

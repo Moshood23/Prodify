@@ -47,6 +47,8 @@ public interface IApplicationDbContext
     IQueryable<Notification> Notifications { get; }
 
     IQueryable<Domain.Promotions.Entities.Voucher> Vouchers { get; }
+    IQueryable<Domain.Promotions.Entities.FlashSale> FlashSales { get; }
+    IQueryable<Domain.Promotions.Entities.FlashSaleClaim> FlashSaleClaims { get; }
 
     IQueryable<StoreCreditEntry> StoreCreditEntries { get; }
 
@@ -58,6 +60,9 @@ public interface IApplicationDbContext
 
     // The same for a customer, e.g. while spending their store credit.
     Task LockCustomerAsync(Guid customerId, CancellationToken cancellationToken = default);
+
+    // And on a flash sale, while an order takes some of its units.
+    Task LockFlashSaleAsync(Guid flashSaleId, CancellationToken cancellationToken = default);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

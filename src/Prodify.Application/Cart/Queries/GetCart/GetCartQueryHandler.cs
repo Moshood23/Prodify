@@ -30,7 +30,7 @@ public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartDto>
             return new CartDto();
 
         var variants = await _context.GetCartVariantsAsync(
-            cart.Items.Select(i => i.ProductVariantId).ToList(), cancellationToken);
+            cart.Items.Select(i => i.ProductVariantId).ToList(), cancellationToken, customerId);
 
         var lines = cart.Items.Select(i => new CartLine(i.Id, i.ProductVariantId, i.Quantity, i.UnitPrice));
         return CartPricing.Build(cart.Id, lines, variants);
