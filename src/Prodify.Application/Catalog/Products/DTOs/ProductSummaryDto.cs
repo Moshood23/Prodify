@@ -11,7 +11,7 @@ public class ProductSummaryDto
     public Guid SellerId { get; set; }
     public string SellerName { get; set; } = null!;
 
-    // Price of the cheapest active variant ("from ₦...").
+    // Price of the cheapest active variant ("from NGN ...").
     public decimal Price { get; set; }
     public decimal? CompareAtPrice { get; set; }
 
@@ -21,5 +21,15 @@ public class ProductSummaryDto
     public Guid DefaultVariantId { get; set; }
     public int VariantCount { get; set; }
     public bool InStock { get; set; }
+
+    // A flash sale on the variant the card shows (the cheapest), while it has units left.
+    public ProductCardSaleDto? FlashSale { get; set; }
     public DateTime CreatedAt { get; set; }
+}
+
+public class ProductCardSaleDto
+{
+    public decimal SalePrice { get; set; }
+    public decimal WasPrice { get; set; }
+    public DateTime EndsAt { get; set; }
 }

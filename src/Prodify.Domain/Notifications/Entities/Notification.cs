@@ -14,7 +14,8 @@ public enum NotificationType
     NewOrder,
     AccountUpdate,
     Payout,
-    Return
+    Return,
+    FlashSale
 }
 
 public class Notification : AuditableEntity

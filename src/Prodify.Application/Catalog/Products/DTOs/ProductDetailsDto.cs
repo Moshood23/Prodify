@@ -1,4 +1,6 @@
-﻿namespace Prodify.Application.Catalog.Products.DTOs;
+﻿using Prodify.Application.Promotions.FlashSales.Common;
+
+namespace Prodify.Application.Catalog.Products.DTOs;
 
 public class ProductDetailsDto
 {
@@ -39,6 +41,9 @@ public class ProductVariantDto
     public decimal? CompareAtPrice { get; set; }
     public int AvailableQuantity { get; set; }
     public bool InStock => AvailableQuantity > 0;
+
+    // A flash sale running on this variant right now, if any.
+    public FlashSaleOfferDto? FlashSale { get; set; }
 }
 
 public class ProductAttributeDto

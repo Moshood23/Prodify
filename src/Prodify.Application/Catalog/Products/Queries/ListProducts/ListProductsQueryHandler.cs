@@ -4,6 +4,7 @@ using Prodify.Application.Catalog.Products.Common;
 using Prodify.Application.Catalog.Products.DTOs;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Models;
+using Prodify.Application.Promotions.FlashSales.Common;
 
 namespace Prodify.Application.Catalog.Products.Queries.ListProducts;
 
@@ -126,6 +127,7 @@ public class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, Pagin
             .ToListAsync(cancellationToken);
 
         await SetStockAsync(items, cancellationToken);
+        await SetFlashSalesAsync(items, cancellationToken);
 
         foreach (var item in items)
             item.Rating = item.Rating is { } rating ? Math.Round(rating, 1) : null;
@@ -155,6 +157,18 @@ public class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, Pagin
 
         foreach (var item in items)
             item.InStock = productsInStock.Contains(item.Id);
+    }
+
+    // Cards show the price of their cheapest variant, so they show a flash sale running on that variant.
+    private async Task SetFlashSalesAsync(List<ProductSummaryDto> items, CancellationToken cancellationToken)
+    {
+        var offers = await _context.GetFlashSaleOffersAsync(items.Select(i => i.DefaultVariantId).ToList(), null, DateTime.UtcNow, cancellationToken);
+
+        foreach (var item in items)
+        {
+            if (offers.TryGetValue(item.DefaultVariantId, out var offer) && offer.UnitsLeft > 0)
+                item.FlashSale = new ProductCardSaleDto { SalePrice = offer.SalePrice, WasPrice = offer.WasPrice, EndsAt = offer.EndsAt };
+        }
     }
 
     private static IEnumerable<string> SplitSearch(string? search) =>

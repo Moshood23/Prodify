@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Prodify.Application.Promotions.FlashSales.Common;
 
 namespace Prodify.Application.Cart.Queries.GetCart;
 
@@ -29,8 +30,14 @@ public class CartItemDto
     public string? VariantName { get; set; }
     public string? ImageUrl { get; set; }
     public int Quantity { get; set; }
+    // The flash sale price when the line gets it, otherwise the normal price (RegularPrice).
     public decimal UnitPrice { get; set; }
+    public decimal RegularPrice { get; set; }
     public decimal Subtotal { get; set; }
+
+    // A flash sale running on this product. The line gets the sale price only when
+    // Quantity is at most FlashSale.Allowance.
+    public FlashSaleOfferDto? FlashSale { get; set; }
     public int AvailableQuantity { get; set; }
 
     // Available = can be bought, InStock = enough units for the quantity in the cart.

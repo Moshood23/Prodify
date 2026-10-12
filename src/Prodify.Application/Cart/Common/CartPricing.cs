@@ -1,4 +1,5 @@
 ﻿using Prodify.Application.Cart.Queries.GetCart;
+using Prodify.Application.Promotions.FlashSales.Common;
 
 namespace Prodify.Application.Cart.Common;
 
@@ -15,7 +16,7 @@ public static class CartPricing
             .Select(line =>
             {
                 variants.TryGetValue(line.ProductVariantId, out var variant);
-                var unitPrice = variant?.Price ?? line.SavedPrice;
+                var unitPrice = variant?.PriceFor(line.Quantity) ?? line.SavedPrice;
                 var isAvailable = variant?.IsAvailable ?? false;
 
                 return new CartItemDto
@@ -28,6 +29,8 @@ public static class CartPricing
                     ImageUrl = variant?.ImageUrl,
                     Quantity = line.Quantity,
                     UnitPrice = unitPrice,
+                    RegularPrice = variant?.Price ?? line.SavedPrice,
+                    FlashSale = variant?.FlashSale is { } offer ? FlashSaleOfferDto.From(offer) : null,
                     Subtotal = unitPrice * line.Quantity,
                     AvailableQuantity = variant?.AvailableQuantity ?? 0,
                     IsAvailable = isAvailable,

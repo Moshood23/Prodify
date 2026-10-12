@@ -10,6 +10,7 @@ using Prodify.Domain.Ordering.Entities;
 using Prodify.Domain.Ordering.ValueObjects;
 using Prodify.Application.Shipping.DeliveryFees;
 using Prodify.Application.Promotions.Vouchers.Common;
+using Prodify.Application.Promotions.FlashSales.Common;
 using Prodify.Application.Customers.StoreCredit;
 using Prodify.Domain.Customers.Entities;
 using Prodify.Domain.Payments.Entities;
@@ -45,10 +46,11 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
             throw new BusinessRuleException("Your cart is empty.");
 
         var variants = await _context.GetCartVariantsAsync(
-            cart.Items.Select(i => i.ProductVariantId).ToList(), cancellationToken);
+            cart.Items.Select(i => i.ProductVariantId).ToList(), cancellationToken, customerId);
 
         var lineItems = new List<(Guid SellerId, Guid ProductVariantId, string ProductName, int Quantity, Money UnitPrice)>();
         var stockToReserve = new List<(InventoryItem Item, int Quantity)>();
+        var flashSaleUnits = new List<(Guid FlashSaleId, string ProductName, int Quantity)>();
 
         foreach (var cartItem in cart.Items)
         {
@@ -62,9 +64,12 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
 
             stockToReserve.Add((inventoryItem, cartItem.Quantity));
 
-            // Customers pay today's price, not the price when they added the item.
+            // Customers pay today's price (the flash sale price if the line gets it), not the price when they added the item.
             var name = variant.VariantName is null ? variant.ProductName : $"{variant.ProductName} ({variant.VariantName})";
-            lineItems.Add((variant.SellerId, cartItem.ProductVariantId, name, cartItem.Quantity, Money.Create(variant.Price)));
+            lineItems.Add((variant.SellerId, cartItem.ProductVariantId, name, cartItem.Quantity, Money.Create(variant.PriceFor(cartItem.Quantity))));
+
+            if (variant.FlashSale is { } sale && sale.Covers(cartItem.Quantity))
+                flashSaleUnits.Add((sale.FlashSaleId, name, cartItem.Quantity));
         }
 
         var shippingAddress = OrderAddress.Create(
@@ -81,6 +86,9 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
             ?? throw new BusinessRuleException($"We don't deliver to {request.State.Trim()} yet. Please choose another address.");
 
         var order = Order.Place(customerId, shippingAddress, lineItems, paymentMethod, deliveryFee);
+
+        if (flashSaleUnits.Count > 0)
+            await _context.TakeFlashSaleUnitsAsync(order.Id, customerId, flashSaleUnits, DateTime.UtcNow, cancellationToken);
 
         // Checked again here: the cart or the voucher may have changed since checkout showed the discount.
         if (!string.IsNullOrWhiteSpace(request.VoucherCode))
