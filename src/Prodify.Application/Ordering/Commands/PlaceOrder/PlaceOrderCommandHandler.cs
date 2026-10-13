@@ -12,6 +12,7 @@ using Prodify.Application.Shipping.DeliveryFees;
 using Prodify.Application.Promotions.Vouchers.Common;
 using Prodify.Application.Promotions.FlashSales.Common;
 using Prodify.Application.Customers.StoreCredit;
+using Prodify.Application.Identity.Commands.VerifyEmail;
 using Prodify.Domain.Customers.Entities;
 using Prodify.Domain.Payments.Entities;
 
@@ -25,18 +26,22 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly OrderEmailSender _orderEmails;
+    private readonly IIdentityService _identityService;
 
-    public PlaceOrderCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, OrderEmailSender orderEmails)
+    public PlaceOrderCommandHandler(
+        IApplicationDbContext context, ICurrentUserService currentUser, OrderEmailSender orderEmails, IIdentityService identityService)
     {
         _context = context;
         _currentUser = currentUser;
         _orderEmails = orderEmails;
+        _identityService = identityService;
     }
 
     public async Task<Guid> Handle(PlaceOrderCommand request, CancellationToken cancellationToken)
     {
         var customerId = _currentUser.GetRequiredCustomerId();
         var paymentMethod = Enum.Parse<PaymentMethod>(request.PaymentMethod, ignoreCase: true);
+        await _identityService.EnsureVerifiedAsync(_currentUser, cancellationToken);
 
         var cart = await _context.Carts
             .Include(c => c.Items)

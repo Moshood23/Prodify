@@ -21,7 +21,9 @@ public class JwtService
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            // The website asks unverified users to check their inbox; the API checks it again where it matters.
+            new("email_verified", user.EmailConfirmed ? "true" : "false")
         };
 
         if (user.CustomerId.HasValue)

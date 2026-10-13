@@ -187,6 +187,36 @@ public class IdentityService : IIdentityService
         return new Application.Common.Interfaces.IdentityResult(true, user.Id, null, Enumerable.Empty<string>());
     }
 
+    public async Task<string?> GenerateEmailVerificationTokenAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null || user.EmailConfirmed)
+            return null;
+
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        return Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+    }
+
+    public async Task<bool> VerifyEmailAsync(Guid userId, string token, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return false;
+
+        if (user.EmailConfirmed)
+            return true;
+
+        var decoded = TryBase64UrlDecode(token);
+        if (decoded is null)
+            return false;
+
+        var result = await _userManager.ConfirmEmailAsync(user, Encoding.UTF8.GetString(decoded));
+        return result.Succeeded;
+    }
+
+    public async Task<bool> IsEmailVerifiedAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        await _userManager.Users.AnyAsync(u => u.Id == userId && u.EmailConfirmed, cancellationToken);
+
     public const string InvalidLogin = "Invalid email or password.";
     public const string LockedOut = "Too many wrong passwords. Try again in 15 minutes, or reset your password.";
     public const string InvalidResetLink = "This reset link is invalid or has expired. Please request a new one.";

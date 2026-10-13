@@ -10,6 +10,7 @@ using Prodify.Application.Identity.Commands.Register;
 using Prodify.Application.Identity.Commands.ChangePassword;
 using Prodify.Application.Identity.Commands.ForgotPassword;
 using Prodify.Application.Identity.Commands.ResetPassword;
+using Prodify.Application.Identity.Commands.VerifyEmail;
 
 namespace Prodify.Api.Controllers;
 
@@ -79,6 +80,24 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    // The link in the verification email. Works without being logged in.
+    [EnableRateLimiting(RateLimiting.AuthPolicy)]
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail(VerifyEmailCommand command, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    // Sends the verification email again to the signed-in user.
+    [Authorize]
+    [EnableRateLimiting(RateLimiting.AuthPolicy)]
+    [HttpPost("resend-verification")]
+    public async Task<IActionResult> ResendVerification(CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new ResendVerificationEmailCommand(), cancellationToken);
+        return NoContent();
+    }
 
     [Authorize]
     [HttpPost("logout")]

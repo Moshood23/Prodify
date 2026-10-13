@@ -4,6 +4,7 @@ using Prodify.Application.Common.Emails;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Identity.Commands.VerifyEmail;
 using Prodify.Domain.Customers.Entities;
 
 namespace Prodify.Application.Identity.Commands.Register;
@@ -43,7 +44,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
         if (!result.Succeeded)
             throw new BusinessRuleException(string.Join(" ", result.Errors));
 
-        _emails.Enqueue(email, customer.FirstName, AccountEmails.Welcome(customer.FirstName, _urls));
+        // The welcome email carries the link that verifies the address.
+        var token = await _identityService.GenerateEmailVerificationTokenAsync(result.UserId!.Value, cancellationToken);
+        if (token is not null)
+            _emails.Enqueue(email, customer.FirstName, AccountEmails.Welcome(customer.FirstName, EmailVerification.Link(_urls, result.UserId.Value, token)));
 
         return new AuthResultDto
         {

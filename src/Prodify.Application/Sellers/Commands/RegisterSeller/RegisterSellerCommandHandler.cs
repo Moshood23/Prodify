@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Prodify.Application.Common.Exceptions;
 using Prodify.Application.Common.Interfaces;
+using Prodify.Application.Identity.Commands.VerifyEmail;
 using Prodify.Domain.Sellers.Entities;
 
 namespace Prodify.Application.Sellers.Commands.RegisterSeller;
@@ -29,6 +30,8 @@ public class RegisterSellerCommandHandler : IRequestHandler<RegisterSellerComman
 
         if (_currentUser.SellerId.HasValue)
             throw new ConflictException("This account is already registered as a seller.");
+
+        await _identityService.EnsureVerifiedAsync(_currentUser, cancellationToken);
 
         var email = request.Email.Trim().ToLowerInvariant();
 
