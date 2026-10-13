@@ -44,9 +44,12 @@ public static class DependencyInjection
             // 5 wrong passwords in a row lock the account for 15 minutes.
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            // Verification links have their own, longer-lasting tokens.
+            options.Tokens.EmailConfirmationTokenProvider = EmailConfirmationTokenProviderOptions.ProviderName;
         })
             .AddEntityFrameworkStores<ProdifyDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddTokenProvider<EmailConfirmationTokenProvider<ApplicationUser>>(EmailConfirmationTokenProviderOptions.ProviderName);
         services.AddDataProtection().PersistKeysToDbContext<ProdifyDbContext>();
         services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(1));
 

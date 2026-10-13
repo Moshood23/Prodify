@@ -4,16 +4,31 @@ namespace Prodify.Application.Common.Emails;
 
 public static class AccountEmails
 {
-    public static EmailContent Welcome(string firstName, IAppUrls urls) =>
+    // Sent on sign-up, with the link that verifies the email address.
+    public static EmailContent Welcome(string firstName, string verifyUrl) =>
         EmailLayout.Build(
-            "Welcome to Prodify",
+            "Welcome to Prodify: please verify your email",
             $"Welcome, {firstName}!",
             new[]
             {
                 "Your Prodify account is ready. Shop phones, fashion, home appliances and more from sellers across Nigeria.",
-                "Pay by card or pay on delivery, and track every order from your account.",
+                "Please confirm this is your email address. You need to before you can place an order.",
             },
-            ("Start shopping", urls.Page("/")));
+            ("Verify my email", verifyUrl),
+            "The link works for 3 days. If you didn't create a Prodify account, you can ignore this email.");
+
+    // "Send the link again".
+    public static EmailContent VerifyEmail(string? firstName, string verifyUrl) =>
+        EmailLayout.Build(
+            "Verify your email for Prodify",
+            "Verify your email",
+            new[]
+            {
+                $"Hi {firstName ?? "there"},",
+                "Click the button below to confirm this is your email address. You need to before you can place an order.",
+            },
+            ("Verify my email", verifyUrl),
+            "The link works for 3 days. If you didn't ask for this, you can ignore this email.");
 
     public static EmailContent PasswordReset(string? firstName, string resetUrl) =>
         EmailLayout.Build(

@@ -29,6 +29,16 @@ public interface IIdentityService
     // logs the user out everywhere. No tokens are returned: the user logs in again.
     Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword, CancellationToken cancellationToken = default);
 
+    // A one-time token (URL-safe) for the link in the "verify your email" email, valid for 3 days.
+    // Null if there is no such user or their email is already verified.
+    Task<string?> GenerateEmailVerificationTokenAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    // Marks the email as verified with a token from GenerateEmailVerificationTokenAsync.
+    // False if the link is wrong or has expired. Clicking a link again after verifying is fine (true).
+    Task<bool> VerifyEmailAsync(Guid userId, string token, CancellationToken cancellationToken = default);
+
+    Task<bool> IsEmailVerifiedAsync(Guid userId, CancellationToken cancellationToken = default);
+
     // Revokes a refresh token that belongs to the given user (logout).
     Task RevokeRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default);
 }
