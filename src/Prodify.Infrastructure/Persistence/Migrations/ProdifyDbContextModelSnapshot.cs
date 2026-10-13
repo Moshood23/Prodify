@@ -492,6 +492,12 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("bit");
 
+                    b.Property<bool>("LowStockAlertSent")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LowStockThreshold")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -1815,6 +1821,9 @@ namespace Prodify.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("LowStockEmailSentAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");

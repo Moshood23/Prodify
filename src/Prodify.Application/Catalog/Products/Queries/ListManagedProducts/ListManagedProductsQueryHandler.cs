@@ -5,6 +5,7 @@ using Prodify.Application.Catalog.Products.DTOs;
 using Prodify.Application.Common.Interfaces;
 using Prodify.Application.Common.Models;
 using Prodify.Application.Common.Security;
+using Prodify.Application.Inventory.LowStock;
 using Prodify.Domain.Catalog.ValueObjects;
 
 namespace Prodify.Application.Catalog.Products.Queries.ListManagedProducts;
@@ -44,6 +45,7 @@ public class ListManagedProductsQueryHandler : IRequestHandler<ListManagedProduc
         {
             "active" => products.Where(p => p.IsActive),
             "inactive" => products.Where(p => !p.IsActive),
+            "low-stock" => products.Where(p => _context.LowStockVariants().Any(v => v.ProductId == p.Id)),
             _ => products
         };
 
@@ -96,7 +98,7 @@ public class ListManagedProductsQueryHandler : IRequestHandler<ListManagedProduc
 
         var variants = await _context.ProductVariants
             .Where(v => productIds.Contains(v.ProductId) && v.IsActive == true)
-            .Select(v => new { v.Id, v.ProductId })
+            .Select(v => new { v.Id, v.ProductId, v.LowStockThreshold })
             .ToListAsync(cancellationToken);
 
         var stock = await _context.GetAvailableStockAsync(variants.Select(v => v.Id).ToList(), cancellationToken);
@@ -106,6 +108,9 @@ public class ListManagedProductsQueryHandler : IRequestHandler<ListManagedProduc
             item.AvailableStock = variants
                 .Where(v => v.ProductId == item.Id)
                 .Sum(v => stock.GetValueOrDefault(v.Id));
+
+            item.LowStockVariantCount = !item.IsActive ? 0 : variants
+                .Count(v => v.ProductId == item.Id && v.LowStockThreshold > 0 && stock.GetValueOrDefault(v.Id) <= v.LowStockThreshold);
 
             item.Status = ManagedProductStatusRules.For(item.IsActive, item.ActiveVariantCount, item.AvailableStock);
         }

@@ -123,6 +123,7 @@ public static class DependencyInjection
         services.AddHostedService<ReservationExpirationService>();
         services.AddHostedService<UnpaidOrderCancellationService>();
         services.AddHostedService<EmailDispatchService>();
+        services.AddHostedService<LowStockAlertService>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly));
 
         services.AddValidatorsFromAssembly(typeof(Prodify.Application.AssemblyMarker).Assembly);

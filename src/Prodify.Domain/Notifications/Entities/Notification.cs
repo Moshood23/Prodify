@@ -16,7 +16,8 @@ public enum NotificationType
     Payout,
     Return,
     FlashSale,
-    Message
+    Message,
+    LowStock
 }
 
 public class Notification : AuditableEntity

@@ -29,6 +29,9 @@ public class ManagedProductSummaryDto
     // Units ready to sell across the active variants.
     public int AvailableStock { get; set; }
 
+    // Active variants at or below their low stock warning level (sold out ones included).
+    public int LowStockVariantCount { get; set; }
+
     public string Status { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
 }
@@ -69,4 +72,8 @@ public class ManagedVariantDto
     // Held for orders that are not paid or confirmed yet.
     public int QuantityReserved { get; set; }
     public int AvailableQuantity { get; set; }
+
+    // Warn the seller at this many units or fewer; 0 = off.
+    public int LowStockThreshold { get; set; }
+    public bool IsLowStock { get; set; }
 }

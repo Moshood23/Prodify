@@ -4,7 +4,7 @@ namespace Prodify.Application.Catalog.Products.Queries.ListManagedProducts;
 
 public class ListManagedProductsQueryValidator : AbstractValidator<ListManagedProductsQuery>
 {
-    public static readonly string[] Filters = { "active", "inactive" };
+    public static readonly string[] Filters = { "active", "inactive", "low-stock" };
 
     public ListManagedProductsQueryValidator()
     {
