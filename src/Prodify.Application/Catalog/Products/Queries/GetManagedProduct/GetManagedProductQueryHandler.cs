@@ -104,7 +104,9 @@ public class GetManagedProductQueryHandler : IRequestHandler<GetManagedProductQu
                     IsActive = v.IsActive == true,
                     QuantityOnHand = onHand,
                     QuantityReserved = reserved,
-                    AvailableQuantity = Math.Max(0, onHand - reserved)
+                    AvailableQuantity = Math.Max(0, onHand - reserved),
+                    LowStockThreshold = v.LowStockThreshold,
+                    IsLowStock = v.IsLowStock(onHand - reserved)
                 };
             })
             .ToList();

@@ -29,6 +29,9 @@ public class Seller : AuditableEntity
     // When an admin last approved, rejected, suspended or reinstated the seller.
     public DateTime? StatusChangedAt { get; private set; }
 
+    // When the seller was last sent the daily "these products are running low" email.
+    public DateTime? LowStockEmailSentAt { get; private set; }
+
     public ICollection<SellerAddress> Addresses => _addresses;
 
     private Seller()
@@ -77,6 +80,8 @@ public class Seller : AuditableEntity
 
         ChangeStatus(SellerStatus.Approved, null);
     }
+
+    public void RecordLowStockEmail(DateTime sentAt) => LowStockEmailSentAt = sentAt;
 
     public void Reject(string? reason = null)
     {

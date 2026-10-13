@@ -22,6 +22,9 @@ public class SetVariantStockCommandHandler : IRequestHandler<SetVariantStockComm
     {
         var variant = await _context.GetManagedVariantAsync(_currentUser, request.ProductId, request.VariantId, cancellationToken);
 
+        if (request.LowStockThreshold.HasValue)
+            variant.SetLowStockThreshold(request.LowStockThreshold.Value);
+
         var item = await _context.GetInventoryItemAsync(variant.Id, cancellationToken);
 
         if (item is null)

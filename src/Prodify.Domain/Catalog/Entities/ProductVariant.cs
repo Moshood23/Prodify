@@ -5,6 +5,10 @@ namespace Prodify.Domain.Catalog.Entities;
 
 public class ProductVariant : AuditableEntity
 {
+    // Sellers are warned when the units ready to sell drop to this number or fewer.
+    public const int DefaultLowStockThreshold = 5;
+    public const int MaxLowStockThreshold = 10_000;
+
     public Guid ProductId { get; private set; }
     public SKU SKU { get; private set; } = null!;
     public string? Name { get; private set; }
@@ -12,6 +16,13 @@ public class ProductVariant : AuditableEntity
     public decimal? CompareAtPrice { get; private set; }
     public decimal Weight { get; private set; }
     public bool? IsActive { get; private set; }
+
+    // 0 turns the low stock warning off for this variant.
+    public int LowStockThreshold { get; private set; } = DefaultLowStockThreshold;
+
+    // The seller has been told this variant is running low. Cleared once it is restocked,
+    // so the next drop warns them again.
+    public bool LowStockAlertSent { get; private set; }
 
     private ProductVariant()
     {
@@ -74,6 +85,21 @@ public class ProductVariant : AuditableEntity
         Name = name;
         Weight = weight;
     }
+
+    public void SetLowStockThreshold(int threshold)
+    {
+        if (threshold < 0 || threshold > MaxLowStockThreshold)
+            throw new ArgumentException($"Choose a number between 0 and {MaxLowStockThreshold}. 0 turns the warning off.", nameof(threshold));
+
+        LowStockThreshold = threshold;
+    }
+
+    public bool IsLowStock(int availableQuantity) =>
+        IsActive == true && LowStockThreshold > 0 && availableQuantity <= LowStockThreshold;
+
+    public void MarkLowStockAlertSent() => LowStockAlertSent = true;
+
+    public void ClearLowStockAlert() => LowStockAlertSent = false;
 
     public void Activate() => IsActive = true;
 
