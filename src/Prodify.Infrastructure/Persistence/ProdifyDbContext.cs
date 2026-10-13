@@ -57,6 +57,10 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     public DbSet<Prodify.Domain.Promotions.Entities.FlashSale> FlashSales => Set<Prodify.Domain.Promotions.Entities.FlashSale>();
     public DbSet<Prodify.Domain.Promotions.Entities.FlashSaleClaim> FlashSaleClaims => Set<Prodify.Domain.Promotions.Entities.FlashSaleClaim>();
 
+    // Messages
+    public DbSet<Prodify.Domain.Messaging.Entities.Conversation> Conversations => Set<Prodify.Domain.Messaging.Entities.Conversation>();
+    public DbSet<Prodify.Domain.Messaging.Entities.ConversationMessage> ConversationMessages => Set<Prodify.Domain.Messaging.Entities.ConversationMessage>();
+
     // Shipping
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<DeliveryFee> DeliveryFees => Set<DeliveryFee>();
@@ -97,6 +101,8 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<Prodify.Domain.Promotions.Entities.Voucher> IApplicationDbContext.Vouchers => Vouchers;
     IQueryable<Prodify.Domain.Promotions.Entities.FlashSale> IApplicationDbContext.FlashSales => FlashSales;
     IQueryable<Prodify.Domain.Promotions.Entities.FlashSaleClaim> IApplicationDbContext.FlashSaleClaims => FlashSaleClaims;
+    IQueryable<Prodify.Domain.Messaging.Entities.Conversation> IApplicationDbContext.Conversations => Conversations;
+    IQueryable<Prodify.Domain.Messaging.Entities.ConversationMessage> IApplicationDbContext.ConversationMessages => ConversationMessages;
     IQueryable<StoreCreditEntry> IApplicationDbContext.StoreCreditEntries => StoreCreditEntries;
     IQueryable<Prodify.Domain.Returns.Entities.ReturnRequest> IApplicationDbContext.ReturnRequests => ReturnRequests;
     public DbSet<StoreCreditEntry> StoreCreditEntries => Set<StoreCreditEntry>();

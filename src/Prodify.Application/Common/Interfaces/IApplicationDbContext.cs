@@ -50,6 +50,9 @@ public interface IApplicationDbContext
     IQueryable<Domain.Promotions.Entities.FlashSale> FlashSales { get; }
     IQueryable<Domain.Promotions.Entities.FlashSaleClaim> FlashSaleClaims { get; }
 
+    IQueryable<Domain.Messaging.Entities.Conversation> Conversations { get; }
+    IQueryable<Domain.Messaging.Entities.ConversationMessage> ConversationMessages { get; }
+
     IQueryable<StoreCreditEntry> StoreCreditEntries { get; }
 
     IQueryable<Domain.Returns.Entities.ReturnRequest> ReturnRequests { get; }
