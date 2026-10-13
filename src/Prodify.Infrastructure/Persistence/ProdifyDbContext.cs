@@ -67,6 +67,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
 
     public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+    public DbSet<ProductView> ProductViews => Set<ProductView>();
 
     // Payouts
     public DbSet<Domain.Payouts.Entities.PlatformSettings> PlatformSettings => Set<Domain.Payouts.Entities.PlatformSettings>();
@@ -111,6 +112,7 @@ public class ProdifyDbContext : IdentityDbContext<ApplicationUser, IdentityRole<
     IQueryable<DeliveryFee> IApplicationDbContext.DeliveryFees => DeliveryFees;
     IQueryable<ProductReview> IApplicationDbContext.ProductReviews => ProductReviews;
     IQueryable<WishlistItem> IApplicationDbContext.WishlistItems => WishlistItems;
+    IQueryable<ProductView> IApplicationDbContext.ProductViews => ProductViews;
     IQueryable<Domain.Payouts.Entities.PlatformSettings> IApplicationDbContext.PlatformSettings => PlatformSettings;
     IQueryable<Domain.Payouts.Entities.SellerEarning> IApplicationDbContext.SellerEarnings => SellerEarnings;
     IQueryable<Domain.Payouts.Entities.PayoutAccount> IApplicationDbContext.PayoutAccounts => PayoutAccounts;

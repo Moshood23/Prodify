@@ -38,6 +38,7 @@ public interface IApplicationDbContext
     IQueryable<ProductReview> ProductReviews { get; }
 
     IQueryable<WishlistItem> WishlistItems { get; }
+    IQueryable<ProductView> ProductViews { get; }
 
     IQueryable<Domain.Payouts.Entities.PlatformSettings> PlatformSettings { get; }
     IQueryable<Domain.Payouts.Entities.SellerEarning> SellerEarnings { get; }
